@@ -1,0 +1,506 @@
+# Home Visit 2.0 - Project Rules
+
+## Reference Repository
+- **Original Svelte Frontend**: https://github.com/betterlokaki/HomeVisit
+- This repository contains the original Svelte 4.0.0 + SvelteKit frontend implementation
+- Use as reference for design, styling, and UI patterns when migrating to React
+- **Important**: Only implement core functionality (login, sites list, timeframe navigation) - don't copy everything
+
+## Project Structure
+This is a **pnpm monorepo** project with:
+- **Backend**: Express.js API server (Node.js/TypeScript)
+- **Frontend**: React application (TypeScript)
+- **Database**: PostgreSQL with PostGIS extension
+- **Common**: Shared models and types
+
+### Common Folder Structure
+All models are located in the `common` folder with the following structure:
+```
+common/
+  models/
+    logic-indicative-name/
+      model1.ts
+      model2.ts
+      model3.ts
+```
+- Models are organized by logical domain/feature (logic-indicative-name)
+- Each model file contains one model definition
+- Models are shared between frontend and backend
+
+## Database Schema
+
+### Groups Table
+- `group_id` (Primary Key)
+- `group_name` (Unique identifier)
+- `group_display_name` (Display name)
+- `group_default_refresh_seconds` (Integer - time difference between each status check, can be any timeframe)
+
+### Users Table
+- `user_id` (Primary Key)
+- `username` (Unique identifier)
+- `user_display_name` (Display name)
+- `group_id` (Foreign Key -> Groups.group_id) - User can be in only one group
+
+### Sites Table
+- `site_id` (Primary Key)
+- `site_name` (Unique identifier)
+- `site_display_name` (Display name)
+- `site_group_id` (Foreign Key -> Groups.group_id) - The group the site belongs to
+- `site_user_id` (Foreign Key -> Users.user_id) - The user the site belongs to
+- `refresh_seconds` (Integer - overrides the group refresh_seconds if set)
+- `geometry` (PostGIS POLYGON geometry in SRID 4326 - WGS84 coordinate system)
+
+### Statuses Table
+- `status_id` (Primary Key)
+- `site_id` (Foreign Key -> Sites.site_id) - The site this status belongs to
+- `seenStatus` (Enum: "Seen", "Partial Seen", "Not Seen")
+- `time` (Timestamp - actual time when status was updated/created)
+- `window_start_time` (Timestamp - the start time of the time window this status belongs to)
+- Unique constraint on (`site_id`, `window_start_time`) - ensures only one status per site per time window
+
+## TypeScript Requirements - MANDATORY
+
+### Language Rules
+- **TypeScript ONLY** - Never write JavaScript files (.js, .jsx)
+- All code must be written in TypeScript (.ts, .tsx)
+- **NO `any` type allowed** - The use of `any` type is strictly forbidden anywhere in the codebase
+- Use proper TypeScript types, interfaces, and generics
+- Enable strict TypeScript compiler options
+- Use type inference where appropriate, but be explicit when it improves clarity
+
+### TypeScript Naming Conventions
+- **Files**: Use camelCase for files (e.g., `userService.ts`, `apiClient.ts`)
+- **Classes/Interfaces**: Use PascalCase (e.g., `UserService`, `IApiClient`)
+- **Variables/Functions**: Use camelCase (e.g., `getUserData`, `userId`)
+- **Constants**: Use UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`, `API_BASE_URL`)
+- **Private members**: Use camelCase with underscore prefix if needed (e.g., `_privateMethod`)
+- **Type aliases**: Use PascalCase (e.g., `UserData`, `ApiResponse`)
+
+## Frontend Development (React)
+
+### UI Components
+- **ShadCN components** - Use ShadCN UI components for all UI elements
+- Always prefer ShadCN components over custom implementations
+- Customize ShadCN components as needed, but start with the library components
+
+### Component Structure
+- **One component per file** - Each React component must be in its own separate file
+- Use **functional components** with hooks (no class components)
+- Follow React base component coding patterns
+- **File length limit: 100 lines maximum** - If any file (component, hook, utility, etc.) exceeds 100 lines, it means the logic wasn't divided correctly and must be refactored into smaller, more focused modules
+
+### State Management Best Practices
+- **For large/complex state**: Use Context API or state management libraries (Redux, Zustand, Jotai) following best practices
+- **Context API**: Each context should follow best practices:
+  - Split contexts by domain/feature (don't create one giant context)
+  - Use multiple smaller contexts instead of one large context
+  - Memoize context values to prevent unnecessary re-renders
+  - Keep context providers close to where they're used
+- **Local state**: Use `useState` for component-specific state that doesn't need to be shared
+- **Derived state**: Prefer computing values from props/state rather than storing redundant state
+- **State colocation**: Keep state as close as possible to where it's used
+
+### Code Organization
+- Extract custom hooks for reusable logic
+- Separate business logic from presentation components
+- Use composition over inheritance
+- Keep components small and focused on a single responsibility
+
+## Backend Development (Express.js)
+
+### SOLID Principles - CRITICAL
+**SOLID principles are MANDATORY and the highest priority:**
+- **Single Responsibility Principle (SRP)**: Each module/class/function should have one reason to change
+- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
+- **Liskov Substitution Principle (LSP)**: Subtypes must be substitutable for their base types
+- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on interfaces they don't use
+- **Dependency Inversion Principle (DIP)**: Depend on abstractions, not concretions
+
+### Modular Architecture
+- **Write modular code** - Always consider the bigger picture since changes come quickly
+- Break down functionality into small, independent modules
+- Use dependency injection for better testability and flexibility
+- Separate concerns: routes, controllers, services, repositories
+- **File length limit: 100 lines maximum** - If any file exceeds 100 lines, refactor into smaller modules
+
+### Service Structure
+Services are organized in the following structure:
+```
+services/
+  serviceLogicName/
+    interfaces/
+      IServiceLogicName.ts
+    ServiceLogicName.ts
+```
+
+Example:
+```
+services/
+  brokolyDivision/
+    interfaces/
+      IBrokolyDivision.ts
+    BrokolyDivision.ts
+```
+
+- Each service has its own folder named with logic-indicative-name (camelCase)
+- Interface file is in the `interfaces/` subfolder with `I` prefix (PascalCase)
+- Implementation file is in the service folder root with PascalCase name
+- One interface per file, one implementation per file
+- Follow Dependency Inversion Principle - depend on interfaces, not implementations
+
+### Express.js Best Practices
+- Use middleware for cross-cutting concerns
+- Separate route handlers from business logic
+- Use service layer for business logic
+- Use repository pattern for data access
+- Implement proper error handling middleware
+- Use TypeScript for type safety
+
+## Library Usage - CRITICAL
+
+### Always Use Libraries
+- **Libraries are ALWAYS better than custom code** - Always prefer well-maintained libraries over writing custom implementations
+- **Before coding ANY feature**: Use deepResearch to find the best library for the task
+- Research libraries thoroughly before implementing any functionality
+- Only write custom code when no suitable library exists or when it's a core business logic requirement
+- Check library maintenance status, community support, and TypeScript compatibility before using
+
+### General Development Rules
+- **File length limit: 100 lines maximum** - This applies to ALL files (components, classes, services, utilities, etc.)
+  - If a file exceeds 100 lines, it indicates improper logic division
+  - Refactor immediately by splitting into smaller, focused modules
+- Always build after coding to verify compilation
+- Always ask questions before starting to ensure alignment
+- Never ask if changes should be applied - just apply them
+- When creating tests, also run them and fix any issues
+- **MANDATORY: Update tests when changing code** - Whenever you modify, add, or remove functionality, you MUST also update or create the corresponding tests. Consider test impact for every code change.
+- **Write modular code** - Changes come quickly, so always design with the bigger picture in mind
+- **SOLID principles are paramount** - Apply them rigorously to all code
+
+## Technology Stack Preferences
+- Use latest stable versions of all technologies
+- Check web for newest technology versions before implementation
+- **Backend**: Express.js (Node.js/TypeScript) - **SOLID principles mandatory**
+- **Frontend**: React (TypeScript) - Functional components with hooks only
+- **Database**: PostgreSQL
+- **Package Manager**: pnpm
+
+## Status Time Window Logic - CRITICAL
+
+### Overview
+Each site has a refresh interval (either from `sites.refresh_seconds` or `groups.group_default_refresh_seconds`). Statuses are organized into time windows based on this interval, with a fixed anchor date.
+
+### Fixed Anchor Date
+- **Anchor Date**: January 12, 2025, 00:00:00 (2025-01-12 00:00:00)
+- All time windows are calculated from this fixed anchor point
+
+### Time Window Calculation
+1. **Window Calculation Formula**:
+   - Calculate seconds since anchor: `(timestamp - anchor_date) / refresh_seconds`
+   - Floor the result to get window number: `Math.floor(seconds_since_anchor / refresh_seconds)`
+   - Calculate window start: `anchor_date + (window_number * refresh_seconds)`
+   - Window boundaries: `[window_start, window_start + refresh_seconds)` (inclusive start, exclusive end)
+
+2. **Example**:
+   - Site refresh interval: 300 seconds (5 minutes)
+   - Timestamp: 2025-01-12 00:02:30
+   - Seconds since anchor: 150 seconds
+   - Window number: floor(150 / 300) = 0
+   - Window start: 2025-01-12 00:00:00
+   - Window: [00:00:00, 00:05:00)
+
+### Status Update Logic
+1. **When updating a status**:
+   - Calculate `window_start_time` for the given timestamp and site's refresh interval
+   - Check if a status exists for `(site_id, window_start_time)`
+   - If exists: **UPDATE** the existing status record (replace it)
+   - If not exists: **INSERT** a new status record
+   - Store the actual update timestamp in `time` column
+   - Store the calculated `window_start_time` in `window_start_time` column
+
+2. **Unique Constraint**:
+   - Database enforces one status per site per time window via unique constraint on `(site_id, window_start_time)`
+
+### Querying Status
+1. **Current Status**:
+   - Calculate `window_start_time` for current timestamp
+   - Query status where `site_id = X` AND `window_start_time = calculated_window_start`
+   - If no status found: return "Not Seen" (default status for missing windows)
+
+2. **Historical Status**:
+   - Query statuses for a specific time window or range of windows
+   - Missing windows in the range should be treated as "Not Seen"
+
+### Important Rules
+- **One status per time window**: Each site can have only one status per time window (enforced by unique constraint)
+- **Missing windows = "Not Seen"**: If a time window has no status record, the status is considered "Not Seen"
+- **Window boundaries**: Start is inclusive, end is exclusive (e.g., 00:00:00 ≤ timestamp < 00:05:00 belongs to window starting at 00:00:00)
+- **Refresh interval priority**: Use `sites.refresh_seconds` if set, otherwise use `groups.group_default_refresh_seconds`
+
+## Cover Status and Site Link - External Services
+
+### Overview
+Each site has two additional properties that are **NOT stored in the database** and must always be fetched from external services:
+- **coverStatus**: Enum type `'Full' | 'Partial' | 'Empty'`
+- **siteLink**: String URL/link for the site
+
+### Important Rules
+- **Never store in database**: `coverStatus` and `siteLink` are always fetched from external services, never persisted
+- **Always fetch on demand**: These values are fetched on-demand when requested
+- **Caching mechanism**: Cache all fetched values and refresh after configured seconds (cache TTL is configurable per service)
+- **Error handling**: If data is unavailable, return "no data available" - never return false data
+- **No timeouts**: External service requests have no timeout limits
+
+### External Service 1: Current Status and Links
+
+#### Purpose
+Get current `coverStatus` and `siteLink` for multiple sites at once.
+
+#### Request Schema
+```typescript
+{
+  [geometryOuterKey_from_config]: {
+    [geometryInnerKey_from_config]: string[], // Array of WKT geometries
+    [siteNameKey_from_config]: string[] // Array of site names matching geometry order
+  },
+  [timeRangeOuterKey_from_config]: {
+    From: Date, // now - site_refresh_seconds
+    To: Date    // now
+  }
+}
+```
+
+#### Response Schema
+```typescript
+{
+  [responseKey_from_config]: Array<{
+    siteName: string,        // Maps to sites.site_name
+    status: 'Full' | 'Partial' | 'Empty', // coverStatus
+    projectLink: string      // siteLink
+  }>
+}
+```
+
+#### Key Points
+- **Geometry format**: WKT only (this project only works with WKT)
+- **Site name mapping**: Response `siteName` maps to our `sites.site_name`
+- **Time range**: From `now - site_refresh_seconds` to `now` (uses each site's individual refresh_seconds)
+- **Multiple sites**: Can request multiple sites in a single call
+
+### External Service 2: Historical Cover Status
+
+#### Purpose
+Get historical `coverStatus` for a single site, divided into time windows.
+
+#### Request Schema
+```typescript
+{
+  [geometryOuterKey_from_config]: {
+    [geometryInnerKey_from_config]: string // Single WKT geometry
+  },
+  [secondsOuterKey_from_config]: {
+    [secondsInnerKey_from_config]: number[] // Array of refresh seconds divided into week timeframes
+  }
+}
+```
+
+#### Response Schema
+```typescript
+{
+  [responseKey_from_config]: Array<{
+    date: Date,  // Should align with window_start_time logic
+    status: 'Full' | 'Partial' | 'Empty' // coverStatus
+  }>
+}
+```
+
+#### Key Points
+- **Single site only**: One site per request
+- **Time period**: Past 7 days (may be extended to support specific date ranges in the future)
+- **Time window alignment**: Response dates should align with `window_start_time` logic (same anchor date and calculation)
+- **Refresh seconds**: Takes a week and divides it into timeframes based on the site's `refresh_seconds`
+- **Geometry format**: WKT only
+
+### Configuration Management
+
+#### Configuration Files
+- **config.json**: Actual configuration file (gitignored - never commit)
+- **config.example.json**: Example configuration file (committed to repository)
+- Configuration keys are the only keys used to parse request/response
+- If configuration doesn't work, throw an exception
+
+#### Configuration Structure
+```typescript
+{
+  service1: {
+    url: string,
+    geometryOuterKey: string,
+    geometryInnerKey: string,
+    siteNameKey: string,
+    timeRangeOuterKey: string,
+    responseKey: string
+  },
+  service2: {
+    url: string,
+    geometryOuterKey: string,
+    geometryInnerKey: string,
+    secondsOuterKey: string,
+    secondsInnerKey: string,
+    responseKey: string
+  },
+  cache: {
+    ttlSeconds: number // Cache TTL in seconds
+  }
+}
+```
+
+### Caching Strategy
+
+#### Cache Behavior
+- **On-demand fetching**: Fetch from external services only when requested
+- **Periodic refresh**: Cache values and refresh after configured seconds (cache TTL)
+- **Cache update**: Cache should be updated after configured seconds, not hardcoded
+- **Cache scope**: Cache everything we get from a request
+
+#### Cache Implementation Rules
+- Cache TTL is configurable (not hardcoded)
+- Cache should be updated periodically based on configured TTL
+- If cache is stale, fetch fresh data from external service
+- If external service fails, return cached data if available, otherwise "no data available"
+
+### Error Handling
+
+#### Error Scenarios
+1. **External service down**: Return "no data available"
+2. **Site missing from response**: Return "no data available" for that site
+3. **Response format mismatch**: Throw an error/exception
+4. **Configuration missing/invalid**: Throw an exception
+5. **Network errors**: Return "no data available" (no timeout limits)
+
+#### Error Response Rules
+- **Never lie**: Always return "no data available" if data cannot be fetched
+- **Never return false data**: If uncertain, return "no data available"
+- **Throw exceptions**: For configuration errors or response format mismatches
+
+### TypeScript Models
+
+#### Common Models Location
+- **CoverStatus enum**: Located in `common/models/coverStatus/` folder
+- **Service request/response interfaces**: Located in `common/models/` organized by service
+- **No database models**: Since coverStatus is not stored in DB, no database models needed
+
+#### Model Structure
+```
+common/
+  models/
+    coverStatus/
+      CoverStatus.ts  // Enum: 'Full' | 'Partial' | 'Empty'
+    coverStatusAndLink/
+      CoverStatusAndLinkRequest.ts
+      CoverStatusAndLinkResponse.ts
+    coverStatusHistory/
+      CoverStatusHistoryRequest.ts
+      CoverStatusHistoryResponse.ts
+```
+
+### Service URLs
+- **Service1 and Service2**: Different base URLs (configured separately)
+- **Environment support**: Not implemented yet (may be added later)
+
+### Authentication
+- **Current**: No authentication required
+- **Future**: May support username-based authentication (no password, just username)
+- **Not implemented in mocks**: Authentication not required for mock services
+
+### Relationship with seenStatus
+- **coverStatus** and **seenStatus** are related but will be discussed later
+- For now, treat them as independent concepts
+
+## Project Organization
+- Monorepo structure with clear separation between backend and frontend
+- **All models** are located in `common/models/` organized by logical domain
+- Shared types/interfaces should be in the common package
+- Database migrations should be version controlled
+- Environment variables for configuration (database connection, etc.)
+- **Configuration files**: `config.json` (gitignored), `config.example.json` (committed)
+- **TypeScript only** - No JavaScript files allowed
+- **No `any` types** - Strict typing required throughout the codebase
+
+## Testing - CRITICAL
+
+### Test Structure
+Tests are located in the `tests/` directory following this structure:
+```
+tests/
+  backend/
+    controllers/
+      groups/
+        GroupsControllerTests.ts
+      users/
+        UsersControllerTests.ts
+      sites/
+        SitesControllerTests.ts
+  utils/
+    TestHelpers.ts
+  setup.ts
+```
+
+### Test Requirements
+- **Integration tests are MANDATORY** - All API routes must have comprehensive integration tests
+- **Use actual database** - Integration tests run against the real PostgreSQL database (via Docker)
+- **Test all scenarios** - Include happy paths, edge cases, validation errors, and error handling
+- **Reusable test helpers** - Use `TestHelpers` utility class for common validation logic
+- **Test file naming** - Test files must end with `Tests.ts` (e.g., `GroupsControllerTests.ts`)
+
+### Running Tests
+- **Before testing**: Ensure Docker is running and database is started (`docker-compose up -d db`)
+- **Run all tests**: `pnpm test` (from backend directory)
+- **Run in watch mode**: `pnpm test:watch`
+- **Run with coverage**: `pnpm test:coverage`
+- **Test timeout**: 30 seconds (tests may need time for database operations)
+
+### Test Framework
+- **Jest** - Primary testing framework
+- **Supertest** - For HTTP endpoint testing
+- **ts-jest** - TypeScript support for Jest
+- Tests use actual database connection (not mocks)
+
+### Test Coverage Requirements
+- All API endpoints must have integration tests
+- Test all query parameters and request body variations
+- Test validation errors
+- Test edge cases (empty results, non-existent data, etc.)
+- Test nested data structures (Group, User in responses)
+
+### When to Run Tests
+- **MANDATORY: After writing code** - ALWAYS run tests after writing or modifying code to ensure nothing was broken
+- **Before committing code** - Always run tests to ensure nothing is broken
+- **When checking if something works** - Run `pnpm test` to verify all routes
+- **After making changes** - Run tests to ensure changes don't break existing functionality
+- **In CI/CD** - Tests should be part of the build pipeline
+
+### Test Maintenance - CRITICAL
+- **MANDATORY: Update tests when changing code** - Whenever you modify, add, or remove functionality, you MUST also update or create the corresponding tests
+- **Consider test impact first** - Before making any code change, consider which tests are affected and update them accordingly
+- **Test-driven updates** - When changing existing code:
+  1. Identify all tests that cover the changed functionality
+  2. Update those tests to reflect the new behavior
+  3. Create new tests if new functionality is added
+  4. Remove or update tests if functionality is removed
+- **No code change without test change** - If you're changing code, you're also responsible for ensuring the tests are updated to match
+- **Run tests after updates** - After updating tests, always run them to verify they pass with the new code
+
+### Frontend Testing
+- **Test Structure**: Frontend tests are located in `apps/frontend/src/integration/` directory
+- **Test Framework**: Vitest with React Testing Library and happy-dom
+- **Running Frontend Tests**: 
+  - From `apps/frontend` directory: `pnpm test` (run once) or `pnpm test:watch` (watch mode)
+  - **MANDATORY**: Tests must be run after any frontend code changes
+- **Test Coverage**: All major user flows must have integration tests (login, sites list, navigation, etc.)
+- **Test File Naming**: Test files must end with `Tests.tsx` (e.g., `LoginComponentsTests.tsx`)
+
+### Test Data
+- Tests use data from `init.sql` (sample data loaded into database)
+- Tests may create additional data (e.g., "Not Seen" statuses for last window)
+- Database state may change during test execution (this is expected for integration tests)
+

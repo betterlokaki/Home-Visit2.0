@@ -1,0 +1,13 @@
+{
+  "name": "home-visit-2.0",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Home Visit 2.0 Monorepo",
+  "scripts": {
+    "mock-services:start": "pnpm --filter mock-services start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+

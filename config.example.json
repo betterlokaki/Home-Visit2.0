@@ -1,0 +1,33 @@
+{
+  "service1": {
+    "url": "http://localhost:3001",
+    "geometryOuterKey": "geometries",
+    "geometryInnerKey": "wkt",
+    "siteNameKey": "siteNames",
+    "timeRangeOuterKey": "timeRange",
+    "responseKey": "sites",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Custom-Header": "value"
+    }
+  },
+  "service2": {
+    "url": "http://localhost:3002",
+    "geometryOuterKey": "geometry",
+    "geometryInnerKey": "wkt",
+    "secondsOuterKey": "timeframes",
+    "secondsInnerKey": "refreshSeconds",
+    "responseKey": "history",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Custom-Header": "value"
+    }
+  },
+  "cache": {
+    "ttlSeconds": 300
+  },
+  "map": {
+    "mapStyleUrl": "https://demotiles.maplibre.org/style.json"
+  }
+}
+

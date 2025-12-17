@@ -1,0 +1,17 @@
+{
+  "name": "mock-services",
+  "version": "1.0.0",
+  "description": "Mock services for external coverStatus and siteLink services",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": ["mock", "service"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

@@ -1,0 +1,59 @@
+import React, { useState } from 'react';
+import type { FormEvent } from 'react';
+import { ErrorMessage } from './ErrorMessage';
+
+interface LoginFormProps {
+  onSubmit: (username: string) => Promise<void>;
+  loading: boolean;
+}
+
+export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!username.trim()) {
+      setError('Username is required');
+      return;
+    }
+
+    try {
+      await onSubmit(username);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label htmlFor="username" className="block text-sm font-medium text-text mb-2">
+          שם משתמש
+        </label>
+        <input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          disabled={loading}
+          className="w-full px-4 py-2 bg-container border border-border rounded-lg text-text-solid focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+          placeholder="הכנס שם משתמש"
+        />
+      </div>
+
+      {error && <ErrorMessage message={error} />}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-2 px-4 bg-primary text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? 'מתחבר...' : 'התחבר'}
+      </button>
+    </form>
+  );
+};
+

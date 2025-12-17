@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/service1/current-status"
+  },
+  "response": {
+    "sites": [
+      {
+        "siteName": "site_001",
+        "status": "Full",
+        "projectLink": "https://project-link.example.com/site_001"
+      },
+      {
+        "siteName": "site_002",
+        "status": "Partial",
+        "projectLink": "https://project-link.example.com/site_002"
+      },
+      {
+        "siteName": "site_003",
+        "status": "Empty",
+        "projectLink": "https://project-link.example.com/site_003"
+      }
+    ]
+  }
+}
+
