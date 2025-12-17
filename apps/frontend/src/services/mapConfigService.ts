@@ -1,7 +1,8 @@
 import { apiClient } from './apiClient';
+import type { StyleSpecification } from 'maplibre-gl';
 
 export interface MapConfig {
-  mapStyleUrl: string;
+  mapStyle: string | StyleSpecification;
 }
 
 const DEFAULT_MAP_STYLE = 'https://demotiles.maplibre.org/style.json';
@@ -21,7 +22,7 @@ export const mapConfigService = {
     } catch (error) {
       console.warn('Failed to load map config from server, using default:', error);
       return {
-        mapStyleUrl: DEFAULT_MAP_STYLE,
+        mapStyle: DEFAULT_MAP_STYLE,
       };
     }
   },

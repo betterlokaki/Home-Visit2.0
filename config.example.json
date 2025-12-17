@@ -27,7 +27,7 @@
     "ttlSeconds": 300
   },
   "map": {
-    "mapStyleUrl": "https://demotiles.maplibre.org/style.json"
+    "mapStyle": "https://demotiles.maplibre.org/style.json"
   }
 }
 

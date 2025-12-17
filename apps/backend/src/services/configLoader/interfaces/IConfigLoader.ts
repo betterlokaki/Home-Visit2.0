@@ -22,8 +22,10 @@ export interface CacheConfig {
   ttlSeconds: number;
 }
 
+export type MapStyle = string | Record<string, unknown>;
+
 export interface MapConfig {
-  mapStyleUrl: string;
+  mapStyle: MapStyle;
 }
 
 export interface AppConfig {

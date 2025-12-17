@@ -35,9 +35,9 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
 
   const displayText =
     selectedUsernames.length === 0
-      ? 'משתמש'
+      ? 'Display User Name'
       : selectedUsernames.length === 1
-        ? users.find((u) => u.username === selectedUsernames[0])?.userDisplayName || 'משתמש'
+        ? users.find((u) => u.username === selectedUsernames[0])?.userDisplayName || 'Display User Name'
         : `${selectedUsernames.length} משתמשים`;
 
   return (
@@ -63,26 +63,30 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 min-w-[280px] max-h-60 overflow-y-auto">
-          {users.map((user) => {
-            const isSelected = selectedUsernames.includes(user.username);
-            return (
-              <div
-                key={user.username}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-100 hover:bg-gray-700 transition-colors cursor-pointer"
-                onClick={() => toggleUser(user.username)}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleUser(user.username)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-500 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0"
-                />
-                <span className="flex-1 text-right">{user.userDisplayName}</span>
-              </div>
-            );
-          })}
+        <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 min-w-[84px] max-h-60 overflow-y-auto">
+          {users.length === 0 ? (
+            <div className="px-4 py-2.5 text-sm text-gray-400 text-center">No users available</div>
+          ) : (
+            users.map((user) => {
+              const isSelected = selectedUsernames.includes(user.username);
+              return (
+                <div
+                  key={user.username}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-100 hover:bg-gray-700 transition-colors cursor-pointer"
+                  onClick={() => toggleUser(user.username)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleUser(user.username)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-500 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0"
+                  />
+                  <span className="flex-1 text-right text-gray-100">{user.userDisplayName || user.username}</span>
+                </div>
+              );
+            })
+          )}
         </div>
       )}
     </div>

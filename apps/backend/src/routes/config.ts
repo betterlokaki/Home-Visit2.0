@@ -8,7 +8,7 @@ router.get('/map', (_req: Request, res: Response) => {
   try {
     const config = configLoader.loadConfig();
     const mapConfig = config.map || {
-      mapStyleUrl: 'https://demotiles.maplibre.org/style.json',
+      mapStyle: 'https://demotiles.maplibre.org/style.json',
     };
     res.json(mapConfig);
   } catch (error) {

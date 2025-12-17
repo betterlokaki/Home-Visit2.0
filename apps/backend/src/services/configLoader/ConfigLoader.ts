@@ -92,8 +92,17 @@ export class ConfigLoader implements IConfigLoader {
     }
 
     if (config.map) {
-      if (!config.map.mapStyleUrl || typeof config.map.mapStyleUrl !== 'string') {
-        throw new Error('Configuration map.mapStyleUrl must be a non-empty string');
+      if (!config.map.mapStyle) {
+        throw new Error('Configuration map.mapStyle is required');
+      }
+      if (typeof config.map.mapStyle !== 'string' && typeof config.map.mapStyle !== 'object') {
+        throw new Error('Configuration map.mapStyle must be either a string (URL) or an object (JSON style)');
+      }
+      if (typeof config.map.mapStyle === 'string' && config.map.mapStyle.trim() === '') {
+        throw new Error('Configuration map.mapStyle must be a non-empty string when provided as URL');
+      }
+      if (typeof config.map.mapStyle === 'object' && config.map.mapStyle === null) {
+        throw new Error('Configuration map.mapStyle cannot be null');
       }
     }
   }
