@@ -67,6 +67,9 @@ export const SitesPage: React.FC = () => {
               <SitesFilters
                 groupName={group.groupName}
                 onFiltersChange={setFilters}
+                currentTimeframe={currentTimeframe}
+                refreshSeconds={refreshSeconds}
+                group={group}
               />
             )}
             <div className="flex items-center justify-center py-2">
