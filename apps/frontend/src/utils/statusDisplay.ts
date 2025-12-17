@@ -20,7 +20,7 @@ export function getStatusDisplay(
 
   // If cover is empty or no data available
   if (!coverStatus || coverStatus === 'Empty' || coverStatus === 'no data available') {
-    return {
+     return {
       text: 'אין איסוף',
       color: 'red',
     };
