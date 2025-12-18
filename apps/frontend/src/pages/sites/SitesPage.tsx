@@ -5,6 +5,7 @@ import { useSitesData } from '../../hooks/useSitesData';
 import { SitesHeader } from '../../components/sites/SitesHeader';
 import { TimeframeNavigation } from '../../components/TimeframeNavigation';
 import { SitesFilters } from '../../components/sites/SitesFilters';
+import { SitesProgressBar } from '../../components/sites/SitesProgressBar';
 import { SitesList } from '../../components/SitesList';
 import { MapComponent, type MapComponentRef } from '../../components/map/MapComponent';
 import { navigateTimeframe } from '../../utils/timeframeCalculator';
@@ -75,6 +76,12 @@ export const SitesPage: React.FC = () => {
                 currentTimeframe={currentTimeframe}
                 refreshSeconds={refreshSeconds}
                 group={group}
+              />
+            )}
+            {group && (
+              <SitesProgressBar
+                sites={sites}
+                loading={loading}
               />
             )}
             <div className="flex items-center justify-center py-2">

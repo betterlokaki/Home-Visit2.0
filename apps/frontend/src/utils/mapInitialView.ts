@@ -23,8 +23,8 @@ export function calculateInitialViewState(sites: Site[]): InitialViewState {
   }
 
   const firstSite = sitesWithGeometry[0];
-  const polygon = convertWktToGeoJson(firstSite.geometry);
-  if (!polygon) {
+  const geometry = convertWktToGeoJson(firstSite.geometry);
+  if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) {
     return {
       longitude: DEFAULT_CENTER[0],
       latitude: DEFAULT_CENTER[1],
@@ -32,7 +32,7 @@ export function calculateInitialViewState(sites: Site[]): InitialViewState {
     };
   }
 
-  const center = calculatePolygonCentroid(polygon);
+  const center = calculatePolygonCentroid(geometry);
   return {
     longitude: center[0],
     latitude: center[1],

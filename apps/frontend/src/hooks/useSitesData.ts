@@ -53,14 +53,21 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
         requestFilters.usernames = filters.usernames;
       }
 
-      // Handle "awaiting visit" filter - requires AND logic (Not Seen AND Full/Partial)
+      // Handle "awaiting visit" filter - requires AND logic:
+      // (Not Seen AND Full/Partial) OR (Partial Seen AND Full)
       // So we need to fetch sites with both conditions and filter on frontend
       if (filters?.awaitingVisit) {
-        // Add status filter for "Not Seen" if not already present
+        // Add status filter for "Not Seen" and "Partial Seen" if not already present
         if (!requestFilters.status) {
-          requestFilters.status = ['Not Seen' as SeenStatus];
-        } else if (!requestFilters.status.includes('Not Seen' as SeenStatus)) {
-          requestFilters.status = [...requestFilters.status, 'Not Seen' as SeenStatus];
+          requestFilters.status = ['Not Seen' as SeenStatus, 'Partial Seen' as SeenStatus];
+        } else {
+          const statusSet = new Set(requestFilters.status);
+          if (!statusSet.has('Not Seen' as SeenStatus)) {
+            requestFilters.status.push('Not Seen' as SeenStatus);
+          }
+          if (!statusSet.has('Partial Seen' as SeenStatus)) {
+            requestFilters.status.push('Partial Seen' as SeenStatus);
+          }
         }
 
         // Add coverStatus filter for "Full" and "Partial" if not already present
@@ -88,12 +95,26 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
 
       let sitesData = await sitesService.getSitesByFilters(requestFilters);
 
-      // Apply "awaiting visit" filter on frontend (requires AND logic: Not Seen AND Full/Partial)
+      // Apply "awaiting visit" filter on frontend:
+      // Include: (Not Seen AND Full/Partial) OR (Partial Seen AND Full)
+      // Exclude: Empty or no data available
       if (filters?.awaitingVisit) {
         const awaitingVisitSites = sitesData.filter(
-          (site) =>
-            site.status?.seenStatus === 'Not Seen' &&
-            (site.coverStatus === 'Full' || site.coverStatus === 'Partial')
+          (site) => {
+            const coverStatus = site.coverStatus;
+            const seenStatus = site.status?.seenStatus;
+            
+            // Exclude Empty or no data available
+            if (!coverStatus || coverStatus === 'Empty' || coverStatus === 'no data available') {
+              return false;
+            }
+            
+            // Include: Not Seen + (Full OR Partial) OR Partial Seen + Full
+            return (
+              (seenStatus === 'Not Seen' && (coverStatus === 'Full' || coverStatus === 'Partial')) ||
+              (seenStatus === 'Partial Seen' && coverStatus === 'Full')
+            );
+          }
         );
 
         // If other filters are also active, combine with OR logic

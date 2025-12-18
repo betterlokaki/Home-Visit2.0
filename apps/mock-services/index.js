@@ -33,8 +33,8 @@ const CONFIG = {
 // Cover status options
 const COVER_STATUSES = ['Full', 'Partial', 'Empty'];
 
-// Probability that a site will have data (70% chance)
-const DATA_AVAILABILITY_PROBABILITY = 0.7;
+// Always return data for all sites (100% availability)
+const DATA_AVAILABILITY_PROBABILITY = 1.0;
 
 /**
  * Simple hash function to deterministically convert a string to a number
@@ -54,8 +54,8 @@ function hashToPercent(str) {
  * @returns {boolean} - True if data should be available (consistent for same site)
  */
 function shouldReturnData(siteName) {
-  const hash = hashToPercent(siteName);
-  return hash < DATA_AVAILABILITY_PROBABILITY * 100;
+  // Always return true - all sites should have data
+  return true;
 }
 
 /**
@@ -86,8 +86,8 @@ function getCoverStatusForWindow(windowKey) {
  * @returns {boolean} - True if data should be available (consistent for same window)
  */
 function shouldReturnDataForWindow(windowKey) {
-  const hash = hashToPercent(windowKey);
-  return hash < DATA_AVAILABILITY_PROBABILITY * 100;
+  // Always return true - all time windows should have data
+  return true;
 }
 
 function generateProjectLink(siteName) {
@@ -220,6 +220,6 @@ app.listen(PORT, () => {
   console.log(`Mock services running on port ${PORT}`);
   console.log(`Service1: http://localhost:${PORT}/service1/current-status`);
   console.log(`Service2: http://localhost:${PORT}/service2/historical-status`);
-  console.log(`Data availability probability: ${DATA_AVAILABILITY_PROBABILITY * 100}%`);
+  console.log(`Data availability: ${DATA_AVAILABILITY_PROBABILITY * 100}% (all sites will have data)`);
 });
 

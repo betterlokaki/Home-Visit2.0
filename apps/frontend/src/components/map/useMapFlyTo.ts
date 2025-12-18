@@ -20,14 +20,14 @@ export function useMapFlyTo(
 
       // Pass geometry directly to converter - it will handle string, object, or null
       // Don't convert to string if it's already an object, as it might be GeoJSON
-      const polygon = convertWktToGeoJson(site.geometry);
-      if (!polygon) {
-        console.warn('FlyTo: Failed to convert geometry to polygon', { siteId, geometry: site.geometry, geometryType: typeof site.geometry });
+      const geometry = convertWktToGeoJson(site.geometry);
+      if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) {
+        console.warn('FlyTo: Failed to convert geometry to polygon/multipolygon', { siteId, geometry: site.geometry, geometryType: typeof site.geometry, parsedType: geometry?.type });
         return;
       }
 
       try {
-        const center = calculatePolygonCentroid(polygon);
+        const center = calculatePolygonCentroid(geometry);
         
         if (!mapRef.current) {
           console.error('FlyTo: Map ref is null');
