@@ -1,6 +1,29 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import * as fs from 'fs'
+
+// Read config.json for frontend host and port
+let frontendHost = 'localhost';
+let frontendPort = 5173;
+
+try {
+  const configPath = path.resolve(__dirname, '../../config.json');
+  if (fs.existsSync(configPath)) {
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configContent);
+    if (config.frontend) {
+      if (config.frontend.host) {
+        frontendHost = config.frontend.host;
+      }
+      if (config.frontend.port) {
+        frontendPort = config.frontend.port;
+      }
+    }
+  }
+} catch (error) {
+  console.warn('Failed to read config.json for frontend settings, using defaults:', error);
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,6 +39,9 @@ export default defineConfig({
     preserveSymlinks: false,
   },
   server: {
+    host: frontendHost,
+    port: frontendPort,
+    allowedHosts: [frontendHost],
     fs: {
       allow: ['..'],
     },

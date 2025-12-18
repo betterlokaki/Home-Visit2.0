@@ -25,7 +25,6 @@ export class SiteRepository implements ISiteRepository {
       .leftJoinAndSelect('site.group', 'group')
       .leftJoinAndSelect('site.user', 'user')
       .leftJoinAndSelect('user.group', 'userGroup')
-      .addSelect('ST_AsText(site.geometry)', 'geometry_wkt')
       .where('group.group_name = :groupName', { groupName: options.groupName });
 
     if (options.usernames && options.usernames.length > 0) {
@@ -36,16 +35,25 @@ export class SiteRepository implements ISiteRepository {
     // Dates are used in the service layer to determine which status to show
     queryBuilder.leftJoinAndSelect('site.statuses', 'status');
 
-    const results = await queryBuilder.getRawAndEntities();
+    const sites = await queryBuilder.getMany();
     
-    // Map raw results to entities with WKT geometry
-    return results.entities.map((entity, index) => {
-      const raw = results.raw[index];
-      if (raw && raw.geometry_wkt) {
-        entity.geometry = raw.geometry_wkt;
-      }
-      return entity;
-    });
+    // Get geometry WKT for each site separately to avoid issues with getRawAndEntities
+    const sitesWithGeometry = await Promise.all(
+      sites.map(async (site) => {
+        const geometryResult = await this.getSiteRepository()
+          .createQueryBuilder('site')
+          .select('ST_AsText(site.geometry)', 'geometry_wkt')
+          .where('site.site_id = :siteId', { siteId: site.siteId })
+          .getRawOne();
+        
+        if (geometryResult && geometryResult.geometry_wkt) {
+          site.geometry = geometryResult.geometry_wkt;
+        }
+        return site;
+      })
+    );
+    
+    return sitesWithGeometry;
   }
 
   async findBySiteName(siteName: string): Promise<Site | null> {

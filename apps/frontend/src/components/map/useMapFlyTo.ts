@@ -3,11 +3,13 @@ import type { MapRef } from '@vis.gl/react-maplibre';
 import type { Site } from '@home-visit/common';
 import { convertWktToGeoJson } from '../../utils/geometryConverter';
 import { calculatePolygonCentroid } from '../../utils/geometryConverter';
+import { useMapConfig } from '../../hooks/useMapConfig';
 
 export function useMapFlyTo(
   mapRef: React.RefObject<MapRef>,
   sites: Site[]
 ) {
+  const mapConfig = useMapConfig();
   return useCallback(
     (siteId: number) => {
       const site = sites.find((s) => s.siteId === siteId);
@@ -50,9 +52,10 @@ export function useMapFlyTo(
           return;
         }
 
+        const zoom = mapConfig?.flyToZoom || 15;
         map.flyTo({
           center: [center[0], center[1]] as [number, number],
-          zoom: 15,
+          zoom: zoom,
           duration: 1500,
           essential: true,
         });

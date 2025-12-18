@@ -18,6 +18,7 @@ const CONFIG = {
     geometryInnerKey: 'wkt',
     siteNameKey: 'siteNames',
     timeRangeOuterKey: 'timeRange',
+    timeRangeInnerKey: 'dates',
     responseKey: 'sites'
   },
   service2: {
@@ -93,19 +94,32 @@ function generateProjectLink(siteName) {
   return `https://project-link.example.com/${siteName}`;
 }
 
+function calculateAnchorDate(timestamp) {
+  const anchor = new Date(timestamp);
+  anchor.setHours(0, 0, 0, 0);
+  return anchor;
+}
+
 function calculateTimeWindows(refreshSeconds, days = 7) {
-  const anchorDate = new Date('2025-01-12T00:00:00.000Z');
   const now = new Date();
   const startDate = new Date(now);
   startDate.setDate(startDate.getDate() - days);
   
-  const windows = [];
-  let currentWindow = new Date(anchorDate);
+  // Calculate anchor (midnight of the day containing startDate)
+  const anchor = calculateAnchorDate(startDate);
   
-  // Find the first window that includes or is after startDate
-  while (currentWindow < startDate) {
+  // Calculate window start for startDate
+  const secondsSinceAnchor = Math.floor((startDate.getTime() - anchor.getTime()) / 1000);
+  const windowNumber = Math.floor(secondsSinceAnchor / refreshSeconds);
+  const windowStartSeconds = windowNumber * refreshSeconds;
+  let currentWindow = new Date(anchor.getTime() + windowStartSeconds * 1000);
+  
+  // If currentWindow is before startDate, move to next window
+  if (currentWindow < startDate) {
     currentWindow = new Date(currentWindow.getTime() + refreshSeconds * 1000);
   }
+  
+  const windows = [];
   
   // Generate windows from startDate to now
   while (currentWindow <= now) {

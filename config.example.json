@@ -1,10 +1,12 @@
 {
   "service1": {
     "url": "http://localhost:3001",
+    "endpoint": "/service1/current-status",
     "geometryOuterKey": "geometries",
     "geometryInnerKey": "wkt",
     "siteNameKey": "siteNames",
     "timeRangeOuterKey": "timeRange",
+    "timeRangeInnerKey": "dates",
     "responseKey": "sites",
     "headers": {
       "Content-Type": "application/json",
@@ -27,7 +29,15 @@
     "ttlSeconds": 300
   },
   "map": {
-    "mapStyle": "https://demotiles.maplibre.org/style.json"
+    "mapStyle": "https://demotiles.maplibre.org/style.json",
+    "flyToZoom": 15
+  },
+  "database": {
+    "url": "postgresql://homevisit:homevisit_password@localhost:5432/homevisit_db"
+  },
+  "frontend": {
+    "host": "localhost",
+    "port": 5173
   }
 }
 

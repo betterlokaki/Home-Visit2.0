@@ -5,14 +5,14 @@ import { User } from '../entities/User';
 import { Site } from '../entities/Site';
 import { Status } from '../entities/Status';
 import { logger } from './logger';
+import { ConfigLoader } from '../services/configLoader/ConfigLoader';
+
+const configLoader = new ConfigLoader();
+const config = configLoader.loadConfig();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USERNAME || 'homevisit',
-  password: process.env.DB_PASSWORD || 'homevisit_password',
-  database: process.env.DB_DATABASE || 'homevisit_db',
+  url: config.database.url,
   entities: [Group, User, Site, Status],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

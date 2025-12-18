@@ -1,9 +1,11 @@
 export interface Service1Config {
   url: string;
+  endpoint: string;
   geometryOuterKey: string;
   geometryInnerKey: string;
   siteNameKey: string;
   timeRangeOuterKey: string;
+  timeRangeInnerKey: string;
   responseKey: string;
   headers?: Record<string, string>;
 }
@@ -26,6 +28,11 @@ export type MapStyle = string | Record<string, unknown>;
 
 export interface MapConfig {
   mapStyle: MapStyle;
+  flyToZoom?: number;
+}
+
+export interface DatabaseConfig {
+  url: string;
 }
 
 export interface AppConfig {
@@ -33,6 +40,7 @@ export interface AppConfig {
   service2: Service2Config;
   cache: CacheConfig;
   map?: MapConfig;
+  database: DatabaseConfig;
 }
 
 export interface IConfigLoader {

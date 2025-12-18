@@ -7,6 +7,7 @@ const CONFIG = {
     geometryInnerKey: 'wkt',
     siteNameKey: 'siteNames',
     timeRangeOuterKey: 'timeRange',
+    timeRangeInnerKey: 'dates',
   },
   service2: {
     geometryOuterKey: 'geometry',
@@ -87,8 +88,10 @@ async function testService1() {
       [CONFIG.service1.siteNameKey]: SITES.map((s) => s.siteName),
     },
     [CONFIG.service1.timeRangeOuterKey]: {
-      From: fromTime.toISOString(),
-      To: now.toISOString(),
+      [CONFIG.service1.timeRangeInnerKey]: {
+        From: fromTime.toISOString(),
+        To: now.toISOString(),
+      },
     },
   };
 

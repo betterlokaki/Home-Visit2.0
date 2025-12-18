@@ -5,7 +5,6 @@ export class HttpClient implements IHttpClient {
   async post<T = unknown>(url: string, data: unknown, headers?: Record<string, string>): Promise<HttpResponse<T>> {
     try {
       const response = await axios.post<T>(url, data, {
-        timeout: 0,
         headers: headers,
       });
       return {

@@ -17,7 +17,12 @@ interface SitesFiltersState {
 
 export const SitesPage: React.FC = () => {
   const { group, logout } = useAuth();
-  const [currentTimeframe, setCurrentTimeframe] = useState<Date>(new Date());
+  
+  const getInitialTimeframe = (): Date => {
+    return new Date(); // Will be used as "now" - the end of the partial window
+  };
+  
+  const [currentTimeframe, setCurrentTimeframe] = useState<Date>(getInitialTimeframe());
   const [filters, setFilters] = useState<SitesFiltersState>({});
   const { sites, loading, refreshSeconds, refreshSites } = useSitesData({
     group,
@@ -28,8 +33,28 @@ export const SitesPage: React.FC = () => {
   const sitesListRef = useRef<HTMLDivElement>(null);
 
   const navigateTimeframe = (direction: 'prev' | 'next') => {
-    const change = direction === 'next' ? refreshSeconds : -refreshSeconds;
-    setCurrentTimeframe((prev) => new Date(prev.getTime() + change * 1000));
+    const isDailyRefresh = refreshSeconds === 86400;
+    
+    if (isDailyRefresh) {
+      // For daily refresh, navigate by full days
+      if (direction === 'prev') {
+        // Going backwards: set to yesterday 23:59:59
+        const yesterday = new Date(currentTimeframe);
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(23, 59, 59, 999);
+        setCurrentTimeframe(yesterday);
+      } else {
+        // Going forwards: set to next day 00:00:00
+        const tomorrow = new Date(currentTimeframe);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        setCurrentTimeframe(tomorrow);
+      }
+    } else {
+      // For minute-based refresh, navigate by refresh_seconds intervals
+      const change = direction === 'next' ? refreshSeconds : -refreshSeconds;
+      setCurrentTimeframe((prev) => new Date(prev.getTime() + change * 1000));
+    }
   };
 
   const timeframeEndDate = new Date(currentTimeframe.getTime() + refreshSeconds * 1000);

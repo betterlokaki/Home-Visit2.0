@@ -188,14 +188,17 @@ services/
 ## Status Time Window Logic - CRITICAL
 
 ### Overview
-Each site has a refresh interval (either from `sites.refresh_seconds` or `groups.group_default_refresh_seconds`). Statuses are organized into time windows based on this interval, with a fixed anchor date.
+Each site has a refresh interval (either from `sites.refresh_seconds` or `groups.group_default_refresh_seconds`). Statuses are organized into time windows based on this interval, with a relative anchor date.
 
-### Fixed Anchor Date
-- **Anchor Date**: January 12, 2025, 00:00:00 (2025-01-12 00:00:00)
-- All time windows are calculated from this fixed anchor point
+### Relative Anchor Date
+- **Anchor Date**: Midnight (00:00:00) of the current day containing the timestamp
+- All time windows are calculated from this relative anchor point
+- The anchor is recalculated for each day, ensuring windows align with daily boundaries
+- For minute-based refresh intervals (less than 86400 seconds), `refresh_seconds` must be a multiple of 60
 
 ### Time Window Calculation
 1. **Window Calculation Formula**:
+   - Calculate anchor: midnight (00:00:00) of the day containing the timestamp
    - Calculate seconds since anchor: `(timestamp - anchor_date) / refresh_seconds`
    - Floor the result to get window number: `Math.floor(seconds_since_anchor / refresh_seconds)`
    - Calculate window start: `anchor_date + (window_number * refresh_seconds)`
@@ -203,10 +206,12 @@ Each site has a refresh interval (either from `sites.refresh_seconds` or `groups
 
 2. **Example**:
    - Site refresh interval: 300 seconds (5 minutes)
-   - Timestamp: 2025-01-12 00:02:30
+   - Current date: 2025-01-15
+   - Timestamp: 2025-01-15 00:02:30
+   - Anchor: 2025-01-15 00:00:00
    - Seconds since anchor: 150 seconds
    - Window number: floor(150 / 300) = 0
-   - Window start: 2025-01-12 00:00:00
+   - Window start: 2025-01-15 00:00:00
    - Window: [00:00:00, 00:05:00)
 
 ### Status Update Logic

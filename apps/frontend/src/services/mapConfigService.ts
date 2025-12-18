@@ -3,6 +3,7 @@ import type { StyleSpecification } from 'maplibre-gl';
 
 export interface MapConfig {
   mapStyle: string | StyleSpecification;
+  flyToZoom?: number;
 }
 
 const DEFAULT_MAP_STYLE = 'https://demotiles.maplibre.org/style.json';

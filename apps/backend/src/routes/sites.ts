@@ -15,7 +15,8 @@ const cache = new Cache();
 const coverStatusAndLinkService = new CoverStatusAndLinkService(
   configLoader,
   httpClient,
-  cache
+  cache,
+  siteRepository
 );
 const sitesService = new SitesService(siteRepository, coverStatusAndLinkService);
 const sitesController = new SitesController(sitesService);

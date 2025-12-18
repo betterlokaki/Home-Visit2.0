@@ -1,11 +1,20 @@
-const ANCHOR_DATE = new Date('2025-01-12T00:00:00.000Z');
-
 export class WindowCalculator {
+  private static calculateAnchorDate(timestamp: Date): Date {
+    const anchor = new Date(timestamp);
+    anchor.setHours(0, 0, 0, 0);
+    return anchor;
+  }
+
   static calculateWindowStartTime(timestamp: Date, refreshSeconds: number): Date {
-    const secondsSinceAnchor = Math.floor((timestamp.getTime() - ANCHOR_DATE.getTime()) / 1000);
+    if (refreshSeconds < 86400 && refreshSeconds % 60 !== 0) {
+      throw new Error(`refresh_seconds must be a multiple of 60 for minute-based intervals`);
+    }
+
+    const anchor = this.calculateAnchorDate(timestamp);
+    const secondsSinceAnchor = Math.floor((timestamp.getTime() - anchor.getTime()) / 1000);
     const windowNumber = Math.floor(secondsSinceAnchor / refreshSeconds);
     const windowStartSeconds = windowNumber * refreshSeconds;
-    return new Date(ANCHOR_DATE.getTime() + windowStartSeconds * 1000);
+    return new Date(anchor.getTime() + windowStartSeconds * 1000);
   }
 
   static getAllWindowStartTimes(dateFrom: Date, dateTo: Date, refreshSeconds: number): Date[] {

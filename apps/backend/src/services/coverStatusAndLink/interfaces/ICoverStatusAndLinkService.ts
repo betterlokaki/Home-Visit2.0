@@ -8,6 +8,7 @@ export interface CoverStatusAndLinkResult {
 
 export interface ICoverStatusAndLinkService {
   getCoverStatusAndLink(
+    groupName: string,
     sites: Array<{ siteName: string; geometry: string; refreshSeconds: number }>,
     timeRange: { from: Date; to: Date }
   ): Promise<CoverStatusAndLinkResult[]>;

@@ -56,19 +56,19 @@ export const SiteCard: React.FC<SiteCardProps> = ({
 
   return (
     <div
-      className="p-4 bg-container border border-border rounded-lg hover:border-primary transition-colors cursor-pointer"
+      className="p-3 bg-container border border-border rounded-lg hover:border-primary transition-colors cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between mb-1.5">
         <span
-          className={`pl-0.5 pr-0.5 py-1 border rounded text-[0.84rem] ${getStatusColorClass(
+          className={`pl-0.5 pr-0.5 py-0.5 border rounded text-xs ${getStatusColorClass(
             statusDisplay.color
           )}`}
         >
           {statusDisplay.text}
         </span>
         <div
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5"
           onClick={(e) => e.stopPropagation()}
         >
           {isOpen && (
@@ -78,7 +78,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
                 currentSeenStatus={site.status?.seenStatus}
                 onStatusClick={onStatusUpdate}
               />
-              <span className="text-text text-lg">|</span>
+              <span className="text-text text-base">|</span>
             </>
           )}
           <GitHubProjectButton
@@ -87,10 +87,10 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           />
         </div>
       </div>
-      <h3 className="text-xl font-semibold text-text-solid mb-2">
+      <h3 className="text-lg font-semibold text-text-solid mb-1.5">
         {site.siteDisplayName}
       </h3>
-      <p className="text-text text-sm mb-2">אחראי: {site.user.userDisplayName}</p>
+      <p className="text-text text-sm mb-1.5">אחראי: {site.user.userDisplayName}</p>
     </div>
   );
 };

@@ -29,7 +29,7 @@ export const GitHubProjectButton: React.FC<GitHubProjectButtonProps> = ({
     <button
       onClick={handleClick}
       disabled={isDisabled}
-      className={`p-2 rounded-lg font-medium transition-colors ${
+      className={`p-1.5 rounded-lg font-medium transition-colors ${
         isDisabled
           ? 'opacity-50 cursor-not-allowed bg-container border border-border text-text'
           : 'bg-container border border-border text-text hover:bg-floating cursor-pointer'
@@ -37,7 +37,7 @@ export const GitHubProjectButton: React.FC<GitHubProjectButtonProps> = ({
       title="פתח ביקור"
       aria-label="פתח ביקור"
     >
-      <Zap className="w-5 h-5" />
+      <Zap className="w-4 h-4" />
     </button>
   );
 };

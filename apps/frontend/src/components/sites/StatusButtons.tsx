@@ -24,7 +24,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
   const isNotDoneActive = currentSeenStatus === 'Not Seen' || !currentSeenStatus;
 
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-1.5 flex-wrap">
       <button
         onClick={() => {
           if (!isDoneDisabled) {
@@ -32,7 +32,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
           }
         }}
         disabled={isDoneDisabled}
-        className={`pl-1 pr-1 py-2 rounded-lg font-medium text-[0.96em] transition-colors ${
+        className={`pl-1 pr-1 py-1 rounded-lg font-medium text-sm transition-colors ${
           isDoneActive
             ? 'bg-green-600 hover:bg-green-700 text-white'
             : 'bg-container border border-border text-text hover:bg-floating'
@@ -47,7 +47,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
           }
         }}
         disabled={isPartialDoneDisabled}
-        className={`pl-1 pr-1 py-2 rounded-lg font-medium text-[0.96em] transition-colors ${
+        className={`pl-1 pr-1 py-1 rounded-lg font-medium text-sm transition-colors ${
           isPartialDoneActive
             ? 'bg-orange-600 hover:bg-orange-700 text-white'
             : 'bg-container border border-border text-text hover:bg-floating'
@@ -57,7 +57,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
       </button>
       <button
         onClick={() => onStatusClick('Not Seen' as SeenStatus)}
-        className={`pl-1 pr-1 py-2 rounded-lg font-medium text-[0.96em] transition-colors cursor-pointer ${
+        className={`pl-1 pr-1 py-1 rounded-lg font-medium text-sm transition-colors cursor-pointer ${
           isNotDoneActive
             ? 'bg-red-600 hover:bg-red-700 text-white'
             : 'bg-container border border-border text-text hover:bg-floating'

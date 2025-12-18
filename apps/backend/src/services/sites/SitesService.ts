@@ -94,6 +94,7 @@ export class SitesService implements ISitesService {
     };
 
     const coverStatusResults = await this.coverStatusAndLinkService.getCoverStatusAndLink(
+      filter.group,
       sitesWithStatus.map(({ entity }) => ({
         siteName: entity.siteName,
         geometry: entity.geometry!,
@@ -213,6 +214,7 @@ export class SitesService implements ISitesService {
     };
 
     const coverStatusResults = await this.coverStatusAndLinkService.getCoverStatusAndLink(
+      filter.group,
       sitesWithStatus.map(({ entity }) => ({
         siteName: entity.siteName,
         geometry: entity.geometry!,

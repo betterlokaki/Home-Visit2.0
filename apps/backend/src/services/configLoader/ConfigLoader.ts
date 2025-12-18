@@ -58,8 +58,17 @@ export class ConfigLoader implements IConfigLoader {
     if (!config.service1.timeRangeOuterKey) {
       throw new Error('Configuration missing service1.timeRangeOuterKey');
     }
+    if (!config.service1.timeRangeInnerKey) {
+      throw new Error('Configuration missing service1.timeRangeInnerKey');
+    }
     if (!config.service1.responseKey) {
       throw new Error('Configuration missing service1.responseKey');
+    }
+    if (!config.service1.endpoint) {
+      throw new Error('Configuration missing service1.endpoint');
+    }
+    if (typeof config.service1.endpoint !== 'string' || config.service1.endpoint.trim() === '') {
+      throw new Error('Configuration service1.endpoint must be a non-empty string');
     }
 
     if (!config.service2) {
@@ -104,6 +113,19 @@ export class ConfigLoader implements IConfigLoader {
       if (typeof config.map.mapStyle === 'object' && config.map.mapStyle === null) {
         throw new Error('Configuration map.mapStyle cannot be null');
       }
+      if (config.map.flyToZoom !== undefined && (typeof config.map.flyToZoom !== 'number' || config.map.flyToZoom <= 0)) {
+        throw new Error('Configuration map.flyToZoom must be a positive number');
+      }
+    }
+
+    if (!config.database) {
+      throw new Error('Configuration missing database');
+    }
+    if (!config.database.url) {
+      throw new Error('Configuration missing database.url');
+    }
+    if (typeof config.database.url !== 'string' || config.database.url.trim() === '') {
+      throw new Error('Configuration database.url must be a non-empty string');
     }
   }
 }
