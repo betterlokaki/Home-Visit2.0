@@ -27,12 +27,19 @@ export interface CacheConfig {
 export type MapStyle = string | Record<string, unknown>;
 
 export interface MapConfig {
-  mapStyle: MapStyle;
+  mapStyle?: MapStyle;
+  styleJson?: MapStyle;
   flyToZoom?: number;
 }
 
 export interface DatabaseConfig {
   url: string;
+}
+
+export interface FrontendConfig {
+  host: string;
+  port: number;
+  allowedHosts: string[];
 }
 
 export interface AppConfig {
@@ -41,6 +48,7 @@ export interface AppConfig {
   cache: CacheConfig;
   map?: MapConfig;
   database: DatabaseConfig;
+  frontend?: FrontendConfig;
 }
 
 export interface IConfigLoader {

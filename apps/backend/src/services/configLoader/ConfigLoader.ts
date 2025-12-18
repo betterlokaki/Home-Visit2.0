@@ -101,17 +101,30 @@ export class ConfigLoader implements IConfigLoader {
     }
 
     if (config.map) {
-      if (!config.map.mapStyle) {
-        throw new Error('Configuration map.mapStyle is required');
+      if (!config.map.mapStyle && !config.map.styleJson) {
+        throw new Error('Configuration map must have either mapStyle or styleJson');
       }
-      if (typeof config.map.mapStyle !== 'string' && typeof config.map.mapStyle !== 'object') {
-        throw new Error('Configuration map.mapStyle must be either a string (URL) or an object (JSON style)');
+      if (config.map.mapStyle) {
+        if (typeof config.map.mapStyle !== 'string' && typeof config.map.mapStyle !== 'object') {
+          throw new Error('Configuration map.mapStyle must be either a string (URL) or an object (JSON style)');
+        }
+        if (typeof config.map.mapStyle === 'string' && config.map.mapStyle.trim() === '') {
+          throw new Error('Configuration map.mapStyle must be a non-empty string when provided as URL');
+        }
+        if (typeof config.map.mapStyle === 'object' && config.map.mapStyle === null) {
+          throw new Error('Configuration map.mapStyle cannot be null');
+        }
       }
-      if (typeof config.map.mapStyle === 'string' && config.map.mapStyle.trim() === '') {
-        throw new Error('Configuration map.mapStyle must be a non-empty string when provided as URL');
-      }
-      if (typeof config.map.mapStyle === 'object' && config.map.mapStyle === null) {
-        throw new Error('Configuration map.mapStyle cannot be null');
+      if (config.map.styleJson) {
+        if (typeof config.map.styleJson !== 'string' && typeof config.map.styleJson !== 'object') {
+          throw new Error('Configuration map.styleJson must be either a string (URL) or an object (JSON style)');
+        }
+        if (typeof config.map.styleJson === 'string' && config.map.styleJson.trim() === '') {
+          throw new Error('Configuration map.styleJson must be a non-empty string when provided as URL');
+        }
+        if (typeof config.map.styleJson === 'object' && config.map.styleJson === null) {
+          throw new Error('Configuration map.styleJson cannot be null');
+        }
       }
       if (config.map.flyToZoom !== undefined && (typeof config.map.flyToZoom !== 'number' || config.map.flyToZoom <= 0)) {
         throw new Error('Configuration map.flyToZoom must be a positive number');
@@ -126,6 +139,26 @@ export class ConfigLoader implements IConfigLoader {
     }
     if (typeof config.database.url !== 'string' || config.database.url.trim() === '') {
       throw new Error('Configuration database.url must be a non-empty string');
+    }
+
+    if (config.frontend) {
+      if (typeof config.frontend.host !== 'string' || config.frontend.host.trim() === '') {
+        throw new Error('Configuration frontend.host must be a non-empty string');
+      }
+      if (typeof config.frontend.port !== 'number' || config.frontend.port <= 0 || config.frontend.port > 65535) {
+        throw new Error('Configuration frontend.port must be a number between 1 and 65535');
+      }
+      if (!Array.isArray(config.frontend.allowedHosts)) {
+        throw new Error('Configuration frontend.allowedHosts must be an array');
+      }
+      if (config.frontend.allowedHosts.length === 0) {
+        throw new Error('Configuration frontend.allowedHosts must contain at least one host');
+      }
+      for (const host of config.frontend.allowedHosts) {
+        if (typeof host !== 'string' || host.trim() === '') {
+          throw new Error('Configuration frontend.allowedHosts must contain only non-empty strings');
+        }
+      }
     }
   }
 }

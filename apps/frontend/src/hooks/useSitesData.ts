@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { Site, Group, CoverStatus, SeenStatus } from '@home-visit/common';
 import { sitesService } from '../services/sitesService';
+import { calculateStartTime } from '../utils/timeframeCalculator';
 
 interface SitesFilters {
   usernames?: string[];
@@ -29,21 +30,7 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
     setLoading(true);
     try {
       const timeframeEnd = new Date(currentTimeframe);
-      const isDailyRefresh = refreshSeconds === 86400;
-      
-      let timeframeStart: Date;
-      
-      if (isDailyRefresh) {
-        // For daily refresh, calculate start as midnight of the day containing currentTimeframe
-        timeframeStart = new Date(currentTimeframe);
-        timeframeStart.setHours(0, 0, 0, 0);
-        // timeframeEnd is already set to currentTimeframe (which is "now" on first screen)
-      } else {
-        // For minute-based refresh, use normal calculation
-        timeframeStart = new Date(
-          currentTimeframe.getTime() - refreshSeconds * 1000
-        );
-      }
+      const timeframeStart = calculateStartTime(timeframeEnd, refreshSeconds);
 
       const requestFilters: {
         group: string;

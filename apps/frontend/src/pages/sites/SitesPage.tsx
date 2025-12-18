@@ -7,6 +7,7 @@ import { TimeframeNavigation } from '../../components/TimeframeNavigation';
 import { SitesFilters } from '../../components/sites/SitesFilters';
 import { SitesList } from '../../components/SitesList';
 import { MapComponent, type MapComponentRef } from '../../components/map/MapComponent';
+import { navigateTimeframe } from '../../utils/timeframeCalculator';
 
 interface SitesFiltersState {
   usernames?: string[];
@@ -32,33 +33,12 @@ export const SitesPage: React.FC = () => {
   const mapRef = useRef<MapComponentRef>(null);
   const sitesListRef = useRef<HTMLDivElement>(null);
 
-  const navigateTimeframe = (direction: 'prev' | 'next') => {
-    const isDailyRefresh = refreshSeconds === 86400;
-    
-    if (isDailyRefresh) {
-      // For daily refresh, navigate by full days
-      if (direction === 'prev') {
-        // Going backwards: set to yesterday 23:59:59
-        const yesterday = new Date(currentTimeframe);
-        yesterday.setDate(yesterday.getDate() - 1);
-        yesterday.setHours(23, 59, 59, 999);
-        setCurrentTimeframe(yesterday);
-      } else {
-        // Going forwards: set to next day 00:00:00
-        const tomorrow = new Date(currentTimeframe);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        setCurrentTimeframe(tomorrow);
-      }
-    } else {
-      // For minute-based refresh, navigate by refresh_seconds intervals
-      const change = direction === 'next' ? refreshSeconds : -refreshSeconds;
-      setCurrentTimeframe((prev) => new Date(prev.getTime() + change * 1000));
-    }
+  const handleNavigateTimeframe = (direction: 'prev' | 'next') => {
+    const newEndTime = navigateTimeframe(currentTimeframe, direction, refreshSeconds);
+    setCurrentTimeframe(newEndTime);
   };
 
-  const timeframeEndDate = new Date(currentTimeframe.getTime() + refreshSeconds * 1000);
-  const canNavigateForward = timeframeEndDate <= new Date();
+  const canNavigateForward = currentTimeframe <= new Date();
 
   const handlePolygonClick = (siteId: number): void => {
     const cardElement = document.getElementById(`site-card-${siteId}`);
@@ -100,7 +80,7 @@ export const SitesPage: React.FC = () => {
             <div className="flex items-center justify-center py-2">
               <TimeframeNavigation
                 currentTimeframe={currentTimeframe}
-                onNavigate={navigateTimeframe}
+                onNavigate={handleNavigateTimeframe}
                 canNavigateForward={canNavigateForward}
               />
             </div>

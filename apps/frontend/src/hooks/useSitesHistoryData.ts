@@ -1,24 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Site, Group } from '@home-visit/common';
 import { sitesService } from '../services/sitesService';
-
-function calculateAnchorDate(timestamp: Date): Date {
-  const anchor = new Date(timestamp);
-  anchor.setHours(0, 0, 0, 0);
-  return anchor;
-}
-
-function calculateWindowStartTime(timestamp: Date, refreshSeconds: number): Date {
-  if (refreshSeconds < 86400 && refreshSeconds % 60 !== 0) {
-    throw new Error(`refresh_seconds must be a multiple of 60 for minute-based intervals`);
-  }
-
-  const anchor = calculateAnchorDate(timestamp);
-  const secondsSinceAnchor = Math.floor((timestamp.getTime() - anchor.getTime()) / 1000);
-  const windowNumber = Math.floor(secondsSinceAnchor / refreshSeconds);
-  const windowStartSeconds = windowNumber * refreshSeconds;
-  return new Date(anchor.getTime() + windowStartSeconds * 1000);
-}
+import { calculateStartTime, navigateTimeframe } from '../utils/timeframeCalculator';
 
 interface SitesByTimeframe {
   timeframe: Date;
@@ -40,27 +23,28 @@ export function useSitesHistoryData() {
       setError(null);
 
       try {
-        const timeframes: Date[] = [];
+        const endTimes: Date[] = [];
+        let currentEndTime = new Date(currentTimeframe);
+        
         for (let i = 0; i < numberOfTimeframes; i++) {
-          const timeframeDate = new Date(
-            currentTimeframe.getTime() - i * refreshSeconds * 1000
-          );
-          const windowStart = calculateWindowStartTime(timeframeDate, refreshSeconds);
-          timeframes.push(windowStart);
+          endTimes.push(new Date(currentEndTime));
+          if (i < numberOfTimeframes - 1) {
+            currentEndTime = navigateTimeframe(currentEndTime, 'prev', refreshSeconds);
+          }
         }
 
-        timeframes.reverse();
+        endTimes.reverse();
 
         const sitesByTimeframe: SitesByTimeframe[] = [];
         const allSitesMap = new Map<number, Site>();
 
-        for (const timeframe of timeframes) {
-          const timeframeEnd = new Date(timeframe.getTime() + refreshSeconds * 1000);
+        for (const endTime of endTimes) {
+          const startTime = calculateStartTime(endTime, refreshSeconds);
           const sites = await sitesService.getSitesByFilters({
             group: group.groupName,
             dates: {
-              From: timeframe,
-              To: timeframeEnd,
+              From: startTime,
+              To: endTime,
             },
           });
 
@@ -70,7 +54,7 @@ export function useSitesHistoryData() {
             }
           });
 
-          sitesByTimeframe.push({ timeframe, sites });
+          sitesByTimeframe.push({ timeframe: endTime, sites });
         }
 
         const allSites = Array.from(allSitesMap.values());

@@ -25,31 +25,68 @@ export const MapPolygonLayer: React.FC<MapPolygonLayerProps> = ({ sites }) => {
     if (!map) return;
     
     let mounted = true;
-    let cleanup: (() => void) | undefined;
+    const cleanupFunctions: Array<() => void> = [];
     
     const checkStyleLoad = () => {
       if (!mounted) return;
       
       try {
         const mapInstance = map as unknown as maplibregl.Map;
-        if (typeof mapInstance.isStyleLoaded !== 'function') {
-          setIsStyleLoaded(true);
-          return;
-        }
-
-        if (mapInstance.isStyleLoaded()) {
-          setIsStyleLoaded(true);
-        } else {
-          const onStyleLoad = () => {
+        
+        // Check if map instance has required methods
+        if (typeof mapInstance.isStyleLoaded !== 'function' || 
+            typeof mapInstance.on !== 'function') {
+          // Fallback: assume style is loaded after a short delay
+          setTimeout(() => {
             if (mounted) {
               setIsStyleLoaded(true);
             }
-          };
-          mapInstance.on('style.load', onStyleLoad);
-          cleanup = () => {
-            mapInstance.off('style.load', onStyleLoad);
-          };
+          }, 100);
+          return;
         }
+
+        const setStyleLoaded = () => {
+          if (mounted) {
+            setIsStyleLoaded(true);
+          }
+        };
+
+        // Check if style is already loaded
+        if (mapInstance.isStyleLoaded()) {
+          setStyleLoaded();
+          return;
+        }
+
+        // Listen for style.load event (fires when style is loaded)
+        const onStyleLoad = () => {
+          setStyleLoaded();
+        };
+        mapInstance.on('style.load', onStyleLoad);
+        cleanupFunctions.push(() => {
+          mapInstance.off('style.load', onStyleLoad);
+        });
+
+        // Also listen for load event (fires when map is fully loaded)
+        const onLoad = () => {
+          if (mapInstance.isStyleLoaded()) {
+            setStyleLoaded();
+          }
+        };
+        mapInstance.on('load', onLoad);
+        cleanupFunctions.push(() => {
+          mapInstance.off('load', onLoad);
+        });
+
+        // Fallback: if style doesn't load within 5 seconds, assume it's ready
+        const fallbackTimeout = setTimeout(() => {
+          if (mounted) {
+            console.warn('Style load timeout, assuming style is ready');
+            setStyleLoaded();
+          }
+        }, 5000);
+        cleanupFunctions.push(() => {
+          clearTimeout(fallbackTimeout);
+        });
       } catch (error) {
         console.error('Error checking style load:', error);
         if (mounted) {
@@ -64,9 +101,7 @@ export const MapPolygonLayer: React.FC<MapPolygonLayerProps> = ({ sites }) => {
     return () => {
       mounted = false;
       clearTimeout(timeoutId);
-      if (cleanup) {
-        cleanup();
-      }
+      cleanupFunctions.forEach(cleanup => cleanup());
     };
   }, [map]);
 

@@ -3,9 +3,10 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import * as fs from 'fs'
 
-// Read config.json for frontend host and port
+// Read config.json for frontend host, port, and allowedHosts
 let frontendHost = 'localhost';
 let frontendPort = 5173;
+let allowedHosts: string[] = ['localhost'];
 
 try {
   const configPath = path.resolve(__dirname, '../../config.json');
@@ -18,6 +19,9 @@ try {
       }
       if (config.frontend.port) {
         frontendPort = config.frontend.port;
+      }
+      if (config.frontend.allowedHosts && Array.isArray(config.frontend.allowedHosts)) {
+        allowedHosts = config.frontend.allowedHosts;
       }
     }
   }
@@ -41,7 +45,7 @@ export default defineConfig({
   server: {
     host: frontendHost,
     port: frontendPort,
-    allowedHosts: [frontendHost],
+    allowedHosts: allowedHosts,
     fs: {
       allow: ['..'],
     },

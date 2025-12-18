@@ -1,6 +1,6 @@
 {
   "service1": {
-    "url": "http://localhost:3001",
+    "url": "http://service1.localhost:3001",
     "endpoint": "/service1/current-status",
     "geometryOuterKey": "geometries",
     "geometryInnerKey": "wkt",
@@ -14,7 +14,7 @@
     }
   },
   "service2": {
-    "url": "http://localhost:3002",
+    "url": "http://service2.localhost:3002",
     "geometryOuterKey": "geometry",
     "geometryInnerKey": "wkt",
     "secondsOuterKey": "timeframes",
@@ -30,6 +30,30 @@
   },
   "map": {
     "mapStyle": "https://demotiles.maplibre.org/style.json",
+    "styleJson": {
+      "version": 8,
+      "sources": {
+        "osm": {
+          "type": "raster",
+          "tiles": [
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          ],
+          "tileSize": 256,
+          "attribution": "© OpenStreetMap contributors"
+        }
+      },
+      "layers": [
+        {
+          "id": "osm-layer",
+          "type": "raster",
+          "source": "osm",
+          "minzoom": 0,
+          "maxzoom": 22
+        }
+      ],
+      "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+      "sprite": "https://demotiles.maplibre.org/sprites/osm-liberty"
+    },
     "flyToZoom": 15
   },
   "database": {
@@ -37,7 +61,8 @@
   },
   "frontend": {
     "host": "localhost",
-    "port": 5173
+    "port": 5173,
+    "allowedHosts": ["localhost", "127.0.0.1"]
   }
 }
 
