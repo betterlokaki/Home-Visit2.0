@@ -16,8 +16,13 @@ function calculateWindowStartTime(timestamp: Date, refreshSeconds: number): Date
   return new Date(anchor.getTime() + windowStartSeconds * 1000);
 }
 
-function getNaturalStartForWeek(endTime: Date): Date {
-  const naturalStart = new Date(endTime);
+export function getCurrentWindowStart(refreshSeconds: number): Date {
+  const now = new Date();
+  return calculateWindowStartTime(now, refreshSeconds);
+}
+
+function getNaturalStartForWeek(windowStart: Date): Date {
+  const naturalStart = new Date(windowStart);
   naturalStart.setHours(0, 0, 0, 0);
   const dayOfWeek = naturalStart.getDay();
   const daysToSubtract = dayOfWeek === 0 ? 0 : dayOfWeek;
@@ -25,119 +30,89 @@ function getNaturalStartForWeek(endTime: Date): Date {
   return naturalStart;
 }
 
-function getNaturalStartForMonth(endTime: Date): Date {
-  const naturalStart = new Date(endTime);
+function getNaturalStartForMonth(windowStart: Date): Date {
+  const naturalStart = new Date(windowStart);
   naturalStart.setDate(1);
   naturalStart.setHours(0, 0, 0, 0);
   return naturalStart;
 }
 
-function getNaturalStartForDay(endTime: Date): Date {
-  const naturalStart = new Date(endTime);
-  naturalStart.setHours(0, 0, 0, 0);
-  return naturalStart;
-}
-
-function getNaturalStart(endTime: Date, refreshSeconds: number): Date {
-  const WEEK_SECONDS = 604800;
-  const DAY_SECONDS = 86400;
-
-  if (refreshSeconds === WEEK_SECONDS) {
-    return getNaturalStartForWeek(endTime);
-  }
-
-  if (refreshSeconds === DAY_SECONDS) {
-    return getNaturalStartForDay(endTime);
-  }
-
-  if (refreshSeconds > DAY_SECONDS) {
-    return getNaturalStartForMonth(endTime);
-  }
-
-  return calculateWindowStartTime(endTime, refreshSeconds);
-}
-
-export function calculateStartTime(endTime: Date, refreshSeconds: number): Date {
-  const calculatedStart = new Date(endTime.getTime() - refreshSeconds * 1000);
-  const naturalStart = getNaturalStart(endTime, refreshSeconds);
-  return calculatedStart > naturalStart ? calculatedStart : naturalStart;
-}
-
-function getSaturdayEndOfWeek(sundayStart: Date): Date {
-  const saturdayEnd = new Date(sundayStart);
-  saturdayEnd.setDate(sundayStart.getDate() + 6);
-  saturdayEnd.setHours(23, 59, 59, 999);
-  return saturdayEnd;
-}
-
-function getLastDayOfMonth(monthStart: Date): Date {
-  const lastDay = new Date(monthStart);
-  lastDay.setMonth(monthStart.getMonth() + 1);
-  lastDay.setDate(0);
-  lastDay.setHours(23, 59, 59, 999);
-  return lastDay;
-}
 
 export function navigateTimeframe(
-  currentEndTime: Date,
+  currentWindowStart: Date,
   direction: 'prev' | 'next',
   refreshSeconds: number
 ): Date {
   const WEEK_SECONDS = 604800;
   const DAY_SECONDS = 86400;
   const MONTH_APPROX_SECONDS = 2592000;
+  const currentWindowStartNow = getCurrentWindowStart(refreshSeconds);
 
   if (refreshSeconds === WEEK_SECONDS) {
-    const currentWeekStart = getNaturalStartForWeek(currentEndTime);
+    const currentWeekStart = getNaturalStartForWeek(currentWindowStart);
     if (direction === 'next') {
       const nextWeekStart = new Date(currentWeekStart);
       nextWeekStart.setDate(currentWeekStart.getDate() + 7);
-      return getSaturdayEndOfWeek(nextWeekStart);
+      if (nextWeekStart > currentWindowStartNow) {
+        return currentWindowStart;
+      }
+      return nextWeekStart;
     } else {
       const prevWeekStart = new Date(currentWeekStart);
       prevWeekStart.setDate(currentWeekStart.getDate() - 7);
-      return getSaturdayEndOfWeek(prevWeekStart);
+      return prevWeekStart;
     }
   }
 
   if (refreshSeconds > DAY_SECONDS && refreshSeconds <= MONTH_APPROX_SECONDS) {
-    const currentMonthStart = getNaturalStartForMonth(currentEndTime);
+    const currentMonthStart = getNaturalStartForMonth(currentWindowStart);
     if (direction === 'next') {
       const nextMonthStart = new Date(currentMonthStart);
       nextMonthStart.setMonth(currentMonthStart.getMonth() + 1);
-      return getLastDayOfMonth(nextMonthStart);
+      if (nextMonthStart > currentWindowStartNow) {
+        return currentWindowStart;
+      }
+      return nextMonthStart;
     } else {
       const prevMonthStart = new Date(currentMonthStart);
       prevMonthStart.setMonth(currentMonthStart.getMonth() - 1);
-      return getLastDayOfMonth(prevMonthStart);
+      return prevMonthStart;
     }
   }
 
   if (refreshSeconds === DAY_SECONDS) {
     if (direction === 'next') {
-      const nextDay = new Date(currentEndTime);
-      nextDay.setDate(currentEndTime.getDate() + 1);
-      nextDay.setHours(23, 59, 59, 999);
-      return nextDay;
+      const nextDayStart = new Date(currentWindowStart);
+      nextDayStart.setDate(currentWindowStart.getDate() + 1);
+      nextDayStart.setHours(0, 0, 0, 0);
+      if (nextDayStart > currentWindowStartNow) {
+        return currentWindowStart;
+      }
+      return nextDayStart;
     } else {
-      const prevDay = new Date(currentEndTime);
-      prevDay.setDate(currentEndTime.getDate() - 1);
-      prevDay.setHours(23, 59, 59, 999);
-      return prevDay;
+      const prevDayStart = new Date(currentWindowStart);
+      prevDayStart.setDate(currentWindowStart.getDate() - 1);
+      prevDayStart.setHours(0, 0, 0, 0);
+      return prevDayStart;
     }
   }
 
-  const windowStart = calculateWindowStartTime(currentEndTime, refreshSeconds);
-  const currentWindowEnd = new Date(windowStart.getTime() + refreshSeconds * 1000);
-  
   if (direction === 'next') {
-    return new Date(currentWindowEnd.getTime() + refreshSeconds * 1000);
-  } else {
-    if (currentEndTime.getTime() === windowStart.getTime()) {
-      return new Date(windowStart.getTime() - refreshSeconds * 1000);
-    } else {
-      return windowStart;
+    const nextWindowStart = new Date(currentWindowStart.getTime() + refreshSeconds * 1000);
+    if (nextWindowStart > currentWindowStartNow) {
+      return currentWindowStart;
     }
+    return nextWindowStart;
+  } else {
+    const prevWindowStart = new Date(currentWindowStart.getTime() - refreshSeconds * 1000);
+    return prevWindowStart;
   }
 }
 
+export function calculateStartTime(windowStart: Date, _refreshSeconds: number): Date {
+  return windowStart;
+}
+
+export function calculateEndTime(windowStart: Date, refreshSeconds: number): Date {
+  return new Date(windowStart.getTime() + refreshSeconds * 1000 - 1);
+}

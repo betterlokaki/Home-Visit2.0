@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { Site, Group, CoverStatus, SeenStatus } from '@home-visit/common';
 import { sitesService } from '../services/sitesService';
-import { calculateStartTime } from '../utils/timeframeCalculator';
 
 interface SitesFilters {
   usernames?: string[];
@@ -21,7 +20,7 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
   const [loading, setLoading] = useState(false);
 
   const refreshSeconds = useMemo(() => {
-    return group?.groupDefaultRefreshSeconds || 300;
+    return group?.groupDefaultRefreshSeconds || 86400;
   }, [group]);
 
   const fetchSites = useCallback(async () => {
@@ -29,8 +28,7 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
 
     setLoading(true);
     try {
-      const timeframeEnd = new Date(currentTimeframe);
-      const timeframeStart = calculateStartTime(timeframeEnd, refreshSeconds);
+      const windowStart = new Date(currentTimeframe);
 
       const requestFilters: {
         group: string;
@@ -44,8 +42,8 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
       } = {
         group: group.groupName,
         dates: {
-          From: timeframeStart,
-          To: timeframeEnd,
+          From: windowStart,
+          To: windowStart,
         },
       };
 
@@ -104,8 +102,14 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
             const coverStatus = site.coverStatus;
             const seenStatus = site.status?.seenStatus;
             
-            // Exclude Empty or no data available
+            // Exclude Empty or no data available - must have valid cover status
+            // CoverStatus enum values: 'Full', 'Partial', 'Empty'
             if (!coverStatus || coverStatus === 'Empty' || coverStatus === 'no data available') {
+              return false;
+            }
+            
+            // Only include Full or Partial cover status (explicit check to be safe)
+            if (coverStatus !== 'Full' && coverStatus !== 'Partial') {
               return false;
             }
             

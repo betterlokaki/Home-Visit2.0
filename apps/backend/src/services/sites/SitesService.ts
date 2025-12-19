@@ -21,6 +21,7 @@ export class SitesService implements ISitesService {
   }
 
   private async getSitesWithDateRange(filter: SitesFilterRequest): Promise<CommonSite[]> {
+    const windowStartTime = filter.dates!.To;
     const sites = await this.siteRepository.findByFilters({
       groupName: filter.group,
       usernames: filter.usernames,
@@ -35,14 +36,14 @@ export class SitesService implements ISitesService {
     for (const site of sitesWithGeometry) {
       const commonSite = SiteMapper.mapToCommonSite(site);
       const refreshSeconds = site.refreshSeconds ?? site.group.groupDefaultRefreshSeconds;
-      const windowStartTime = WindowCalculator.calculateWindowStartTime(
-        filter.dates!.To,
+      const siteWindowStartTime = WindowCalculator.calculateWindowStartTime(
+        windowStartTime,
         refreshSeconds
       );
 
       const status = await this.siteRepository.findStatusBySiteIdAndWindowStartTime(
         site.siteId,
-        windowStartTime
+        siteWindowStartTime
       );
 
       if (status) {
@@ -52,8 +53,8 @@ export class SitesService implements ISitesService {
           statusId: 0,
           siteId: site.siteId,
           seenStatus: SeenStatus.NotSeen,
-          time: filter.dates!.To,
-          windowStartTime: windowStartTime,
+          time: windowStartTime,
+          windowStartTime: siteWindowStartTime,
         };
       }
 
@@ -64,16 +65,16 @@ export class SitesService implements ISitesService {
     const sitesWithoutGeometryResult: CommonSite[] = sitesWithoutGeometry.map((site) => {
       const commonSite = SiteMapper.mapToCommonSite(site);
       const refreshSeconds = site.refreshSeconds ?? site.group.groupDefaultRefreshSeconds;
-      const windowStartTime = WindowCalculator.calculateWindowStartTime(
-        filter.dates!.To,
+      const siteWindowStartTime = WindowCalculator.calculateWindowStartTime(
+        windowStartTime,
         refreshSeconds
       );
       commonSite.status = {
         statusId: 0,
         siteId: site.siteId,
         seenStatus: SeenStatus.NotSeen,
-        time: filter.dates!.To,
-        windowStartTime: windowStartTime,
+        time: windowStartTime,
+        windowStartTime: siteWindowStartTime,
       };
       return commonSite;
     });
@@ -82,15 +83,14 @@ export class SitesService implements ISitesService {
       return [];
     }
 
-    const now = new Date();
     const minRefreshSeconds = Math.min(
       ...sitesWithStatus.map(({ entity }) => {
         return entity.refreshSeconds ?? entity.group.groupDefaultRefreshSeconds;
       })
     );
     const timeRange = {
-      from: new Date(now.getTime() - minRefreshSeconds * 1000),
-      to: now,
+      from: new Date(windowStartTime.getTime() - minRefreshSeconds * 1000),
+      to: windowStartTime,
     };
 
     const coverStatusResults = await this.coverStatusAndLinkService.getCoverStatusAndLink(

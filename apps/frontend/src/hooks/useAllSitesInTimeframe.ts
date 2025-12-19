@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Site, Group } from '@home-visit/common';
 import { sitesService } from '../services/sitesService';
-import { calculateStartTime } from '../utils/timeframeCalculator';
 
 interface UseAllSitesInTimeframeProps {
   group: Group | null;
@@ -25,14 +24,13 @@ export const useAllSitesInTimeframe = ({
 
     setLoading(true);
     try {
-      const timeframeEnd = new Date(currentTimeframe);
-      const timeframeStart = calculateStartTime(timeframeEnd, refreshSeconds);
+      const windowStart = new Date(currentTimeframe);
 
       const sitesData = await sitesService.getSitesByFilters({
         group: group.groupName,
         dates: {
-          From: timeframeStart,
-          To: timeframeEnd,
+          From: windowStart,
+          To: windowStart,
         },
       });
 

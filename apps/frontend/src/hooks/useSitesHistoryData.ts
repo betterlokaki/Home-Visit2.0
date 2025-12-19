@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Site, Group } from '@home-visit/common';
 import { sitesService } from '../services/sitesService';
-import { calculateStartTime, navigateTimeframe } from '../utils/timeframeCalculator';
+import { navigateTimeframe } from '../utils/timeframeCalculator';
 
 interface SitesByTimeframe {
   timeframe: Date;
@@ -23,28 +23,27 @@ export function useSitesHistoryData() {
       setError(null);
 
       try {
-        const endTimes: Date[] = [];
-        let currentEndTime = new Date(currentTimeframe);
+        const windowStarts: Date[] = [];
+        let currentWindowStart = new Date(currentTimeframe);
         
         for (let i = 0; i < numberOfTimeframes; i++) {
-          endTimes.push(new Date(currentEndTime));
+          windowStarts.push(new Date(currentWindowStart));
           if (i < numberOfTimeframes - 1) {
-            currentEndTime = navigateTimeframe(currentEndTime, 'prev', refreshSeconds);
+            currentWindowStart = navigateTimeframe(currentWindowStart, 'prev', refreshSeconds);
           }
         }
 
-        endTimes.reverse();
+        windowStarts.reverse();
 
         const sitesByTimeframe: SitesByTimeframe[] = [];
         const allSitesMap = new Map<number, Site>();
 
-        for (const endTime of endTimes) {
-          const startTime = calculateStartTime(endTime, refreshSeconds);
+        for (const windowStart of windowStarts) {
           const sites = await sitesService.getSitesByFilters({
             group: group.groupName,
             dates: {
-              From: startTime,
-              To: endTime,
+              From: windowStart,
+              To: windowStart,
             },
           });
 
@@ -54,7 +53,7 @@ export function useSitesHistoryData() {
             }
           });
 
-          sitesByTimeframe.push({ timeframe: endTime, sites });
+          sitesByTimeframe.push({ timeframe: windowStart, sites });
         }
 
         const allSites = Array.from(allSitesMap.values());

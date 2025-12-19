@@ -8,7 +8,7 @@ import { SitesFilters } from '../../components/sites/SitesFilters';
 import { SitesProgressBar } from '../../components/sites/SitesProgressBar';
 import { SitesList } from '../../components/SitesList';
 import { MapComponent, type MapComponentRef } from '../../components/map/MapComponent';
-import { navigateTimeframe } from '../../utils/timeframeCalculator';
+import { navigateTimeframe, getCurrentWindowStart } from '../../utils/timeframeCalculator';
 
 interface SitesFiltersState {
   usernames?: string[];
@@ -20,11 +20,10 @@ interface SitesFiltersState {
 export const SitesPage: React.FC = () => {
   const { group, logout } = useAuth();
   
-  const getInitialTimeframe = (): Date => {
-    return new Date(); // Will be used as "now" - the end of the partial window
-  };
-  
-  const [currentTimeframe, setCurrentTimeframe] = useState<Date>(getInitialTimeframe());
+  const [currentTimeframe, setCurrentTimeframe] = useState<Date>(() => {
+    const defaultRefresh = 86400;
+    return getCurrentWindowStart(defaultRefresh);
+  });
   const [filters, setFilters] = useState<SitesFiltersState>({});
   const { sites, loading, refreshSeconds, refreshSites } = useSitesData({
     group,
@@ -34,12 +33,31 @@ export const SitesPage: React.FC = () => {
   const mapRef = useRef<MapComponentRef>(null);
   const sitesListRef = useRef<HTMLDivElement>(null);
 
+  React.useEffect(() => {
+    if (refreshSeconds) {
+      const currentWindowStart = getCurrentWindowStart(refreshSeconds);
+      setCurrentTimeframe(currentWindowStart);
+    }
+  }, [refreshSeconds]);
+
   const handleNavigateTimeframe = (direction: 'prev' | 'next') => {
-    const newEndTime = navigateTimeframe(currentTimeframe, direction, refreshSeconds);
-    setCurrentTimeframe(newEndTime);
+    if (!refreshSeconds) return;
+    const newWindowStart = navigateTimeframe(currentTimeframe, direction, refreshSeconds);
+    setCurrentTimeframe(newWindowStart);
   };
 
-  const canNavigateForward = currentTimeframe <= new Date();
+  const handleNavigateToToday = () => {
+    if (!refreshSeconds) return;
+    const currentWindowStart = getCurrentWindowStart(refreshSeconds);
+    setCurrentTimeframe(currentWindowStart);
+  };
+
+  const canNavigateForward = React.useMemo(() => {
+    if (!refreshSeconds) return false;
+    const currentWindowStart = getCurrentWindowStart(refreshSeconds);
+    const nextWindowStart = new Date(currentTimeframe.getTime() + refreshSeconds * 1000);
+    return nextWindowStart <= currentWindowStart;
+  }, [currentTimeframe, refreshSeconds]);
 
   const handlePolygonClick = (siteId: number): void => {
     const cardElement = document.getElementById(`site-card-${siteId}`);
@@ -88,6 +106,7 @@ export const SitesPage: React.FC = () => {
               <TimeframeNavigation
                 currentTimeframe={currentTimeframe}
                 onNavigate={handleNavigateTimeframe}
+                onNavigateToToday={handleNavigateToToday}
                 canNavigateForward={canNavigateForward}
               />
             </div>
