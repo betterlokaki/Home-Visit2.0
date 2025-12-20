@@ -126,7 +126,7 @@ INSERT INTO sites (site_name, site_display_name, site_group_id, site_user_id, re
 ('site_040', 'New Springville Complex', 1, 2, 86400, ST_GeomFromText('POLYGON((-74.1800 40.6000, -74.1700 40.6000, -74.1700 40.6100, -74.1800 40.6100, -74.1800 40.6000))', 4326)),
 ('site_041', 'Travis Industrial Park', 1, 1, NULL, ST_GeomFromText('POLYGON((-74.1900 40.5900, -74.1800 40.5900, -74.1800 40.6000, -74.1900 40.6000, -74.1900 40.5900))', 4326)),
 ('site_042', 'Bloomfield Center', 1, 2, 86400, ST_GeomFromText('POLYGON((-74.2000 40.6100, -74.1900 40.6100, -74.1900 40.6200, -74.2000 40.6200, -74.2000 40.6100))', 4326)),
-('site_043', 'Castleton Corners Hub', 1, 1, NULL, ST_GeomFromText('POLYGON((-74.1200 40.6300, -74.1100 40.6300, -74.1100 40.6400, -74.1200 40.6400, -74.1200 40.6300))', 4326)));
+('site_043', 'Castleton Corners Hub', 1, 1, NULL, ST_GeomFromText('POLYGON((-74.1200 40.6300, -74.1100 40.6300, -74.1100 40.6400, -74.1200 40.6400, -74.1200 40.6300))', 4326));
 
 -- Clear all existing statuses
 DELETE FROM statuses;
