@@ -1,11 +1,15 @@
 import dotenv from 'dotenv';
 import { initializeDatabase } from './config/database';
 import { logger } from './config/logger';
-import app from './app';
+import app, { config } from './app';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3001;
+if (!config.backend || !config.backend.port) {
+  throw new Error('Configuration missing backend.port');
+}
+
+const PORT = config.backend.port;
 
 const startServer = async (): Promise<void> => {
   try {

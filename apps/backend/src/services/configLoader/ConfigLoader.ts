@@ -141,6 +141,12 @@ export class ConfigLoader implements IConfigLoader {
       throw new Error('Configuration database.url must be a non-empty string');
     }
 
+    if (config.backend) {
+      if (typeof config.backend.port !== 'number' || config.backend.port <= 0 || config.backend.port > 65535) {
+        throw new Error('Configuration backend.port must be a number between 1 and 65535');
+      }
+    }
+
     if (config.frontend) {
       if (typeof config.frontend.host !== 'string' || config.frontend.host.trim() === '') {
         throw new Error('Configuration frontend.host must be a non-empty string');
@@ -157,6 +163,11 @@ export class ConfigLoader implements IConfigLoader {
       for (const host of config.frontend.allowedHosts) {
         if (typeof host !== 'string' || host.trim() === '') {
           throw new Error('Configuration frontend.allowedHosts must contain only non-empty strings');
+        }
+      }
+      if (config.frontend.apiBaseUrl !== undefined) {
+        if (typeof config.frontend.apiBaseUrl !== 'string' || config.frontend.apiBaseUrl.trim() === '') {
+          throw new Error('Configuration frontend.apiBaseUrl must be a non-empty string');
         }
       }
     }

@@ -27,5 +27,26 @@ router.get('/map', (_req: Request, res: Response) => {
   }
 });
 
+router.get('/frontend', (_req: Request, res: Response) => {
+  try {
+    const config = configLoader.loadConfig();
+    const frontendConfig = config.frontend || {
+      host: 'localhost',
+      port: 5173,
+      allowedHosts: ['localhost', '127.0.0.1'],
+      apiBaseUrl: 'http://localhost:3001/api',
+    };
+    
+    res.json({
+      apiBaseUrl: frontendConfig.apiBaseUrl,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to load frontend configuration',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 export default router;
 

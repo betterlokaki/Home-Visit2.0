@@ -36,10 +36,15 @@ export interface DatabaseConfig {
   url: string;
 }
 
+export interface BackendConfig {
+  port: number;
+}
+
 export interface FrontendConfig {
   host: string;
   port: number;
   allowedHosts: string[];
+  apiBaseUrl: string;
 }
 
 export interface AppConfig {
@@ -48,6 +53,7 @@ export interface AppConfig {
   cache: CacheConfig;
   map?: MapConfig;
   database: DatabaseConfig;
+  backend?: BackendConfig;
   frontend?: FrontendConfig;
 }
 

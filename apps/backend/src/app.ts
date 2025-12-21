@@ -14,7 +14,7 @@ import { ConfigLoader } from './services/configLoader/ConfigLoader';
 const app: express.Application = express();
 
 const configLoader = new ConfigLoader();
-const config = configLoader.loadConfig();
+export const config = configLoader.loadConfig();
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {

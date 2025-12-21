@@ -24,11 +24,6 @@ export const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(
     const handleMapClick = useMapClickHandler(mapRef, onPolygonClick);
     const mapConfig = useMapConfig();
     
-    // #region agent log
-    React.useEffect(() => {
-      fetch('http://127.0.0.1:7243/ingest/47422ed6-64a0-40b5-9e52-57242e82b502', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MapComponent.tsx:render', message: 'MapComponent rendered', data: { sitesCount: sites.length, mapStyle: mapConfig?.mapStyle || 'default' }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) }).catch(() => {});
-    }, [sites.length, mapConfig?.mapStyle]);
-    // #endregion
 
     useImperativeHandle(ref, () => ({
       flyToSite,
@@ -49,10 +44,6 @@ export const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(
         mapStyle={mapStyle}
         onClick={handleMapClick}
         onLoad={() => {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/47422ed6-64a0-40b5-9e52-57242e82b502', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MapComponent.tsx:onLoad', message: 'Map onLoad event fired', data: { sitesCount: sites.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'F' }) }).catch(() => {});
-          // #endregion
-          // Map is loaded and ready
         }}
       >
         <MapPolygonLayer sites={sites} />
