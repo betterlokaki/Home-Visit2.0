@@ -58,7 +58,7 @@ export class SitesService implements ISitesService {
         };
       }
 
-      // Collect all sites first, filter later with OR logic
+      // Collect all sites first, filter later with AND logic
       sitesWithStatus.push({ site: commonSite, entity: site });
     }
 
@@ -126,7 +126,7 @@ export class SitesService implements ISitesService {
       result.push(site);
     }
 
-    // Apply OR logic filtering: include site if it matches status filter OR coverStatus filter
+    // Apply AND logic filtering: include site if it matches status filter AND coverStatus filter (when both provided)
     // If no filters provided, return all sites
     const hasStatusFilter = filter.status && filter.status.length > 0;
     const hasCoverStatusFilter = filter.coverStatus && filter.coverStatus.length > 0;
@@ -150,10 +150,10 @@ export class SitesService implements ISitesService {
           return filterStatus === site.coverStatus;
         });
 
-      // OR logic: match if either status OR coverStatus matches (when both filters are provided)
+      // AND logic: match if both status AND coverStatus match (when both filters are provided)
       // If only one filter is provided, only that filter applies
       if (hasStatusFilter && hasCoverStatusFilter) {
-        return matchesStatus || matchesCoverStatus;
+        return matchesStatus && matchesCoverStatus;
       } else if (hasStatusFilter) {
         return matchesStatus;
       } else {
@@ -195,7 +195,7 @@ export class SitesService implements ISitesService {
       const commonSite = SiteMapper.mapToCommonSite(site);
       commonSite.status = SiteMapper.mapToCommonStatus(status);
 
-      // Collect all sites first, filter later with OR logic
+      // Collect all sites first, filter later with AND logic
       sitesWithStatus.push({ site: commonSite, entity: site });
     }
 
@@ -239,7 +239,7 @@ export class SitesService implements ISitesService {
       return site;
     });
 
-    // Apply OR logic filtering: include site if it matches status filter OR coverStatus filter
+    // Apply AND logic filtering: include site if it matches status filter AND coverStatus filter (when both provided)
     // If no filters provided, return all sites
     const hasStatusFilter = filter.status && filter.status.length > 0;
     const hasCoverStatusFilter = filter.coverStatus && filter.coverStatus.length > 0;
@@ -263,10 +263,10 @@ export class SitesService implements ISitesService {
           return filterStatus === site.coverStatus;
         });
 
-      // OR logic: match if either status OR coverStatus matches (when both filters are provided)
+      // AND logic: match if both status AND coverStatus match (when both filters are provided)
       // If only one filter is provided, only that filter applies
       if (hasStatusFilter && hasCoverStatusFilter) {
-        return matchesStatus || matchesCoverStatus;
+        return matchesStatus && matchesCoverStatus;
       } else if (hasStatusFilter) {
         return matchesStatus;
       } else {

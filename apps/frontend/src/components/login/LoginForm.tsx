@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
+import Cookies from 'js-cookie';
 import { ErrorMessage } from './ErrorMessage';
+
+const USERNAME_COOKIE_NAME = 'home-visit-username';
+const USERNAME_COOKIE_EXPIRATION_DAYS = 365;
 
 interface LoginFormProps {
   onSubmit: (username: string) => Promise<void>;
@@ -10,6 +14,13 @@ interface LoginFormProps {
 export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedUsername = Cookies.get(USERNAME_COOKIE_NAME);
+    if (savedUsername) {
+      setUsername(savedUsername);
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,6 +33,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
 
     try {
       await onSubmit(username);
+      Cookies.set(USERNAME_COOKIE_NAME, username, { expires: USERNAME_COOKIE_EXPIRATION_DAYS });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }

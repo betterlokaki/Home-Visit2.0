@@ -51,35 +51,66 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
         requestFilters.usernames = filters.usernames;
       }
 
-      // Handle "awaiting visit" filter - requires AND logic:
-      // (Not Seen AND Full/Partial) OR (Partial Seen AND Full)
-      // So we need to fetch sites with both conditions and filter on frontend
+      let sitesData: Site[];
+
+      // Handle "awaiting visit" filter - send two separate requests:
+      // 1. Not Seen AND (Full OR Partial)
+      // 2. Partial Seen AND Full
       if (filters?.awaitingVisit) {
-        // Add status filter for "Not Seen" and "Partial Seen" if not already present
-        if (!requestFilters.status) {
-          requestFilters.status = ['Not Seen' as SeenStatus, 'Partial Seen' as SeenStatus];
-        } else {
-          const statusSet = new Set(requestFilters.status);
-          if (!statusSet.has('Not Seen' as SeenStatus)) {
-            requestFilters.status.push('Not Seen' as SeenStatus);
-          }
-          if (!statusSet.has('Partial Seen' as SeenStatus)) {
-            requestFilters.status.push('Partial Seen' as SeenStatus);
-          }
+        // Request 1: Not Seen AND (Full OR Partial)
+        const request1: {
+          group: string;
+          status: SeenStatus[];
+          coverStatus: CoverStatus[];
+          dates: { From: Date; To: Date };
+          usernames?: string[];
+        } = {
+          group: group.groupName,
+          status: ['Not Seen' as SeenStatus],
+          coverStatus: ['Full' as CoverStatus, 'Partial' as CoverStatus],
+          dates: {
+            From: windowStart,
+            To: windowStart,
+          },
+        };
+
+        if (filters.usernames) {
+          request1.usernames = filters.usernames;
         }
 
-        // Add coverStatus filter for "Full" and "Partial" if not already present
-        if (!requestFilters.coverStatus) {
-          requestFilters.coverStatus = ['Full' as CoverStatus, 'Partial' as CoverStatus];
-        } else {
-          const coverStatusSet = new Set(requestFilters.coverStatus);
-          if (!coverStatusSet.has('Full' as CoverStatus)) {
-            requestFilters.coverStatus.push('Full' as CoverStatus);
-          }
-          if (!coverStatusSet.has('Partial' as CoverStatus)) {
-            requestFilters.coverStatus.push('Partial' as CoverStatus);
-          }
+        // Request 2: Partial Seen AND Full
+        const request2: {
+          group: string;
+          status: SeenStatus[];
+          coverStatus: CoverStatus[];
+          dates: { From: Date; To: Date };
+          usernames?: string[];
+        } = {
+          group: group.groupName,
+          status: ['Partial Seen' as SeenStatus],
+          coverStatus: ['Full' as CoverStatus],
+          dates: {
+            From: windowStart,
+            To: windowStart,
+          },
+        };
+
+        if (filters.usernames) {
+          request2.usernames = filters.usernames;
         }
+
+        // Send both requests in parallel
+        const [sites1, sites2] = await Promise.all([
+          sitesService.getSitesByFilters(request1),
+          sitesService.getSitesByFilters(request2),
+        ]);
+
+        // Combine and remove duplicates by siteId
+        const siteMap = new Map<number, Site>();
+        [...sites1, ...sites2].forEach((site) => {
+          siteMap.set(site.siteId, site);
+        });
+        sitesData = Array.from(siteMap.values());
       } else {
         // Normal filters
         if (filters?.status) {
@@ -89,56 +120,8 @@ export const useSitesData = ({ group, currentTimeframe, filters }: UseSitesDataP
         if (filters?.coverStatus) {
           requestFilters.coverStatus = filters.coverStatus;
         }
-      }
 
-      let sitesData = await sitesService.getSitesByFilters(requestFilters);
-
-      // Apply "awaiting visit" filter on frontend:
-      // Include: (Not Seen AND Full/Partial) OR (Partial Seen AND Full)
-      // Exclude: Empty or no data available
-      if (filters?.awaitingVisit) {
-        const awaitingVisitSites = sitesData.filter(
-          (site) => {
-            const coverStatus = site.coverStatus;
-            const seenStatus = site.status?.seenStatus;
-            
-            // Exclude Empty or no data available - must have valid cover status
-            // CoverStatus enum values: 'Full', 'Partial', 'Empty'
-            if (!coverStatus || coverStatus === 'Empty' || coverStatus === 'no data available') {
-              return false;
-            }
-            
-            // Only include Full or Partial cover status (explicit check to be safe)
-            if (coverStatus !== 'Full' && coverStatus !== 'Partial') {
-              return false;
-            }
-            
-            // Include: Not Seen + (Full OR Partial) OR Partial Seen + Full
-            return (
-              (seenStatus === 'Not Seen' && (coverStatus === 'Full' || coverStatus === 'Partial')) ||
-              (seenStatus === 'Partial Seen' && coverStatus === 'Full')
-            );
-          }
-        );
-
-        // If other filters are also active, combine with OR logic
-        const hasOtherFilters = (filters.status && !filters.status.includes('Not Seen' as SeenStatus)) ||
-          (filters.coverStatus && !filters.coverStatus.some(cs => cs === 'Full' || cs === 'Partial')) ||
-          filters.usernames;
-
-        if (hasOtherFilters) {
-          // Backend already returned sites matching other filters
-          // Combine with awaiting visit sites (OR logic)
-          const siteIds = new Set(sitesData.map((s) => s.siteId));
-          awaitingVisitSites.forEach((site) => {
-            if (!siteIds.has(site.siteId)) {
-              sitesData.push(site);
-            }
-          });
-        } else {
-          // Only awaiting visit filter is active (or it's the only status/coverStatus filter)
-          sitesData = awaitingVisitSites;
-        }
+        sitesData = await sitesService.getSitesByFilters(requestFilters);
       }
 
       setSites(sitesData);

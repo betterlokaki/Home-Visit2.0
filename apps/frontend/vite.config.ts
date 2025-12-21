@@ -4,34 +4,39 @@ import path from 'path'
 import * as fs from 'fs'
 
 // Read config.json for frontend host, port, and allowedHosts
-let frontendHost = 'localhost';
-let frontendPort = 5173;
-let allowedHosts: string[] = ['localhost'];
-
-try {
-  const configPath = path.resolve(__dirname, '../../config.json');
-  if (fs.existsSync(configPath)) {
-    const configContent = fs.readFileSync(configPath, 'utf-8');
-    const config = JSON.parse(configContent);
-    if (config.frontend) {
-      if (config.frontend.host) {
-        frontendHost = config.frontend.host;
-      }
-      if (config.frontend.port) {
-        frontendPort = config.frontend.port;
-      }
-      if (config.frontend.allowedHosts && Array.isArray(config.frontend.allowedHosts)) {
-        allowedHosts = config.frontend.allowedHosts;
-      }
-    }
-  }
-} catch (error) {
-  console.warn('Failed to read config.json for frontend settings, using defaults:', error);
+const configPath = path.resolve(__dirname, '../../config.json');
+if (!fs.existsSync(configPath)) {
+  console.error('FATAL: Configuration file not found at', configPath);
+  process.exit(1);
 }
+
+const configContent = fs.readFileSync(configPath, 'utf-8');
+const config = JSON.parse(configContent);
+
+if (!config.frontend) {
+  console.error('FATAL: Configuration missing frontend section in config.json');
+  process.exit(1);
+}
+
+const frontendHost = config.frontend.host || 'localhost';
+const frontendPort = config.frontend.port || 5173;
+const allowedHosts = config.frontend.allowedHosts && Array.isArray(config.frontend.allowedHosts) 
+  ? config.frontend.allowedHosts 
+  : ['localhost'];
+
+if (!config.frontend.apiBaseUrl) {
+  console.error('FATAL: Configuration missing frontend.apiBaseUrl in config.json');
+  process.exit(1);
+}
+
+const apiBaseUrl = config.frontend.apiBaseUrl;
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __API_BASE_URL__: JSON.stringify(apiBaseUrl),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -50,7 +55,7 @@ export default defineConfig({
       allow: ['..'],
     },
   },
-  // @ts-ignore - vitest types
+  // @ts-expect-error - vitest types
   test: {
     globals: true,
     environment: 'happy-dom',

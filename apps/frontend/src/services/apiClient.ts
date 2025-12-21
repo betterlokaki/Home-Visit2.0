@@ -1,24 +1,13 @@
 import axios, { AxiosError } from 'axios';
 import type { AxiosInstance } from 'axios';
 
-interface FrontendConfig {
-  apiBaseUrl: string;
-}
+declare const __API_BASE_URL__: string;
 
-const INITIAL_API_BASE_URL = 'http://localhost:3001/api';
-
-let cachedConfig: FrontendConfig | null = null;
-
-async function getFrontendConfig(): Promise<FrontendConfig> {
-  if (cachedConfig) {
-    return cachedConfig;
+function getApiBaseUrl(): string {
+  if (!__API_BASE_URL__) {
+    throw new Error('Configuration missing API base URL');
   }
-
-  const response = await axios.get<FrontendConfig>(
-    `${INITIAL_API_BASE_URL}/config/frontend`
-  );
-  cachedConfig = response.data;
-  return cachedConfig;
+  return __API_BASE_URL__;
 }
 
 class ApiClient {
@@ -38,8 +27,7 @@ class ApiClient {
   }
 
   private async loadConfig(): Promise<void> {
-    const config = await getFrontendConfig();
-    this.apiBaseUrl = config.apiBaseUrl;
+    this.apiBaseUrl = getApiBaseUrl();
     this.client.defaults.baseURL = this.apiBaseUrl;
   }
 
