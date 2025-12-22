@@ -15,12 +15,15 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
   const isFullCover = coverStatus === 'Full';
   const isPartialOrFullCover =
     coverStatus === 'Full' || coverStatus === 'Partial';
+  const isEmptyCover = !coverStatus || coverStatus === 'Empty' || coverStatus === 'no data available';
   
   const isDoneDisabled = !isFullCover;
   const isPartialDoneDisabled = !isPartialOrFullCover;
+  const isCoverNotSatisfiedDisabled = isEmptyCover;
 
   const isDoneActive = currentSeenStatus === 'Seen';
   const isPartialDoneActive = currentSeenStatus === 'Partial Seen';
+  const isCoverNotSatisfiedActive = currentSeenStatus === 'Cover Not Satisfied';
   const isNotDoneActive = currentSeenStatus === 'Not Seen' || !currentSeenStatus;
 
   return (
@@ -54,6 +57,21 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
         } ${isPartialDoneDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         בוצע חלקית
+      </button>
+      <button
+        onClick={() => {
+          if (!isCoverNotSatisfiedDisabled) {
+            onStatusClick('Cover Not Satisfied' as SeenStatus);
+          }
+        }}
+        disabled={isCoverNotSatisfiedDisabled}
+        className={`pl-1 pr-1 py-1 rounded-lg font-medium text-sm transition-colors ${
+          isCoverNotSatisfiedActive
+            ? 'bg-purple-600 hover:bg-purple-700 text-white'
+            : 'bg-container border border-border text-text hover:bg-floating'
+        } ${isCoverNotSatisfiedDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
+        איסוף לא מספק
       </button>
       <button
         onClick={() => onStatusClick('Not Seen' as SeenStatus)}

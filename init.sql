@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Create enum type for seenStatus
-CREATE TYPE seen_status_enum AS ENUM ('Seen', 'Partial Seen', 'Not Seen');
+CREATE TYPE seen_status_enum AS ENUM ('Seen', 'Partial Seen', 'Cover Not Satisfied', 'Not Seen');
 
 -- Create Groups table
 CREATE TABLE groups (

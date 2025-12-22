@@ -53,6 +53,13 @@ export function getMapColor(
         fillOpacity: 0.6,
         strokeWidth: 2,
       };
+    case 'purple':
+      return {
+        fill: '#a855f7', // purple-500
+        stroke: '#9333ea', // purple-600
+        fillOpacity: 0.6,
+        strokeWidth: 2,
+      };
     default:
       return {
         fill: '#6b7280', // gray-500

@@ -18,6 +18,7 @@ export function useSitesFilters({ groupName, onFiltersChange }: UseSitesFiltersP
   const [emptyCover, setEmptyCover] = useState(false);
   const [awaitingVisit, setAwaitingVisit] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [coverNotSatisfied, setCoverNotSatisfied] = useState(false);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -51,6 +52,9 @@ export function useSitesFilters({ groupName, onFiltersChange }: UseSitesFiltersP
     if (completed) {
       statusFilters.push('Seen' as SeenStatus);
     }
+    if (coverNotSatisfied) {
+      statusFilters.push('Cover Not Satisfied' as SeenStatus);
+    }
     if (statusFilters.length > 0) {
       filters.status = statusFilters;
     }
@@ -68,7 +72,7 @@ export function useSitesFilters({ groupName, onFiltersChange }: UseSitesFiltersP
     }
 
     onFiltersChange(filters);
-  }, [selectedUsernames, emptyCover, awaitingVisit, completed, users.length, onFiltersChange]);
+  }, [selectedUsernames, emptyCover, awaitingVisit, completed, coverNotSatisfied, users.length, onFiltersChange]);
 
   return {
     users,
@@ -80,6 +84,8 @@ export function useSitesFilters({ groupName, onFiltersChange }: UseSitesFiltersP
     setAwaitingVisit,
     completed,
     setCompleted,
+    coverNotSatisfied,
+    setCoverNotSatisfied,
   };
 }
 

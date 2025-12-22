@@ -8,6 +8,7 @@ const STATUS_COLORS: StatusColorMap = {
   orange: 'ea580c',
   green: '16a34a',
   blue: '1668dc',
+  purple: '9333ea',
 };
 
 export function getStatusColor(color: string): string {

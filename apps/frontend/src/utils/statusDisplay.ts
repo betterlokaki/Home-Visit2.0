@@ -29,6 +29,14 @@ export function getStatusDisplay(
   // If no seen status, default to Not Seen
   const currentSeenStatus = seenStatus || 'Not Seen';
 
+  // Handle Cover Not Satisfied status (works with any cover status except Empty)
+  if (currentSeenStatus === 'Cover Not Satisfied') {
+    return {
+      text: 'איסוף לא מספק',
+      color: 'purple',
+    };
+  }
+
   // Partial cover cases
   if (coverStatus === 'Partial') {
     if (currentSeenStatus === 'Partial Seen') {

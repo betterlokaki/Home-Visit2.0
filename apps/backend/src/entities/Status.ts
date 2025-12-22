@@ -10,8 +10,8 @@ export class Status {
   @Column({ name: 'site_id' })
   siteId!: number;
 
-  @Column({ name: 'seen_status', type: 'enum', enum: ['Seen', 'Partial Seen', 'Not Seen'], enumName: 'seen_status_enum' })
-  seenStatus!: 'Seen' | 'Partial Seen' | 'Not Seen';
+  @Column({ name: 'seen_status', type: 'enum', enum: ['Seen', 'Partial Seen', 'Cover Not Satisfied', 'Not Seen'], enumName: 'seen_status_enum' })
+  seenStatus!: 'Seen' | 'Partial Seen' | 'Cover Not Satisfied' | 'Not Seen';
 
   @Column({ type: 'timestamp' })
   time!: Date;

@@ -36,6 +36,8 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
     setAwaitingVisit,
     completed,
     setCompleted,
+    coverNotSatisfied,
+    setCoverNotSatisfied,
   } = useSitesFilters({ groupName, onFiltersChange });
 
   const { fetchSitesHistory, loading: isDownloading } = useSitesHistoryData();
@@ -85,6 +87,18 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
           }`}
         >
           מחכה לביקור
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCoverNotSatisfied(!coverNotSatisfied)}
+          className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+            coverNotSatisfied
+              ? 'bg-blue-600 hover:bg-blue-500 text-white'
+              : 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+          }`}
+        >
+          איסוף לא מספק
         </button>
 
         <button

@@ -18,16 +18,16 @@ if (!config.frontend) {
   process.exit(1);
 }
 
+if (!config.frontend.apiBaseUrl) {
+  console.error('FATAL: Configuration missing frontend.apiBaseUrl in config.json');
+  process.exit(1);
+}
 const frontendHost = config.frontend.host || 'localhost';
 const frontendPort = config.frontend.port || 5173;
 const allowedHosts = config.frontend.allowedHosts && Array.isArray(config.frontend.allowedHosts) 
   ? config.frontend.allowedHosts 
   : ['localhost'];
 
-if (!config.frontend.apiBaseUrl) {
-  console.error('FATAL: Configuration missing frontend.apiBaseUrl in config.json');
-  process.exit(1);
-}
 
 const apiBaseUrl = config.frontend.apiBaseUrl;
 
@@ -55,6 +55,19 @@ export default defineConfig({
       allow: ['..'],
     },
   },
+  preview:{
+    host: frontendHost,
+    port: frontendPort,
+    allowedHosts: allowedHosts
+  },
+  optimizeDeps: {
+    esbuildOptions:{
+      target: 'es2023'
+    }
+  },
+  build:{
+    target: 'es2023'
+  },
   // @ts-expect-error - vitest types
   test: {
     globals: true,
@@ -64,6 +77,7 @@ export default defineConfig({
     include: [
       path.resolve(__dirname, '../../tests/frontend/**/*Tests.tsx'),
     ],
+
     root: __dirname,
     server: {
       deps: {

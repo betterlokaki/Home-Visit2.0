@@ -72,9 +72,9 @@ export class SitesController {
       return;
     }
 
-    const validSeenStatuses: SeenStatus[] = [SeenStatus.Seen, SeenStatus.PartialSeen, SeenStatus.NotSeen];
+    const validSeenStatuses: SeenStatus[] = [SeenStatus.Seen, SeenStatus.PartialSeen, SeenStatus.CoverNotSatisfied, SeenStatus.NotSeen];
     if (!validSeenStatuses.includes(seenStatus)) {
-      res.status(400).json({ error: 'seenStatus must be one of: Seen, Partial Seen, Not Seen' });
+      res.status(400).json({ error: 'seenStatus must be one of: Seen, Partial Seen, Cover Not Satisfied, Not Seen' });
       return;
     }
 

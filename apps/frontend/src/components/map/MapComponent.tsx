@@ -34,8 +34,8 @@ export const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(
       [sites]
     );
 
-    const mapStyle = mapConfig?.mapStyle || 'https://demotiles.maplibre.org/style.json';
-
+    const mapStyle = mapConfig?.mapStyle;
+     
     return (
       <Map
         ref={mapRef}
