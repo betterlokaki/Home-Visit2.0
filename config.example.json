@@ -85,6 +85,11 @@
         "password": "changeme"
       }
     }
+  },
+  "otel": {
+    "enabled": true,
+    "serviceName": "home-visit-backend",
+    "endpoint": ""
   }
 }
 

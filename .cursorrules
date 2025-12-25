@@ -373,6 +373,14 @@ Get historical `coverStatus` for a single site, divided into time windows.
 - If cache is stale, fetch fresh data from external service
 - If external service fails, return cached data if available, otherwise "no data available"
 
+### Cache Mechanism Pipeline - CRITICAL
+- **Proactive Refresh**: When cache entry reaches 80% of TTL, background refresh is queued via `CacheRefreshQueue`
+- **Non-blocking**: Returns cached data immediately while refresh happens asynchronously
+- **Queue-based**: Uses PQueue with concurrency limits to manage refresh tasks
+- **Deduplication**: Same cache key can only have one refresh task queued at a time
+- **Flow**: Request → Check cache → If expiring soon (80%) → Enqueue refresh → Return cached data → Background refresh updates cache
+- **Components**: `Cache` (in-memory Map with TTL), `CacheRefreshQueue` (PQueue), `CoverStatusAndLinkService` (orchestrates)
+
 ### Error Handling
 
 #### Error Scenarios
@@ -546,4 +554,21 @@ tests/
 - Business logic defaults (e.g., "Not Seen" for missing status windows) are acceptable
 - These are domain rules, not configuration or data defaults
 - Configuration and data defaults are strictly forbidden
+
+## Log Mechanism Pipeline - CRITICAL
+
+### Frontend Logger
+- **Batching**: Logs collected in memory queue (`logQueue: LogEntry[]`)
+- **Dual Triggers**: Flush when queue reaches batchSize (10) OR every flushIntervalMs (5000ms)
+- **Auto-context**: Adds URL, userAgent, timestamp to all log entries
+- **Error Handling**: On HTTP failure, re-adds logs to queue (max 100 entries)
+- **Unload Handler**: Uses `navigator.sendBeacon()` on page unload for reliable delivery
+
+### Backend Log Receiver
+- **Endpoint**: `POST /api/logs` accepts array of `LogEntry[]`
+- **Processing**: Validates entries, extracts metadata, routes to backend logger by level (error/warn/info/debug)
+- **Response**: Returns `{ success: true, received: count }`
+
+### Flow
+Frontend: Component calls logger → Create LogEntry with context → Add to queue → Flush on batch/timeout → POST /api/logs → Backend: Receive array → Validate → Route to logger by level → Output to console/files
 

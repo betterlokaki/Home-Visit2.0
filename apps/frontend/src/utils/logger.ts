@@ -1,119 +1,59 @@
-import log from 'loglevel';
-import axios from 'axios';
-import { loggerConfig } from './loggerConfig';
+import type { Logger as OTELLogger } from '@opentelemetry/api-logs';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { loggerProviderInstance } from '../config/otel';
 
-interface LogEntry {
-  level: 'error' | 'warn' | 'info' | 'debug';
-  message: string;
-  timestamp: string;
-  metadata?: Record<string, unknown>;
-}
+const otelLogger: OTELLogger = loggerProviderInstance.getLogger('home-visit-frontend');
+
+const severityMap: Record<'error' | 'warn' | 'info' | 'debug', SeverityNumber> = {
+  error: SeverityNumber.ERROR,
+  warn: SeverityNumber.WARN,
+  info: SeverityNumber.INFO,
+  debug: SeverityNumber.DEBUG,
+};
 
 class Logger {
-  private logQueue: LogEntry[] = [];
-  private isFlushing = false;
-
-  constructor() {
-    this.setupFlushTimer();
-    this.setupUnloadHandler();
-  }
-
-  private getContext(): Record<string, unknown> {
-    return {
+  private emitLog(severity: 'error' | 'warn' | 'info' | 'debug', message: string, metadata?: Record<string, unknown>): void {
+    const attributes: Record<string, string> = {
       url: window.location.href,
       userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
+      ...Object.fromEntries(
+        Object.entries(metadata || {}).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? value : JSON.stringify(value),
+        ])
+      ),
     };
-  }
 
-  private createLogEntry(level: 'error' | 'warn' | 'info' | 'debug', message: string, metadata?: Record<string, unknown>): LogEntry {
-    return {
-      level,
-      message,
-      timestamp: new Date().toISOString(),
-      metadata: {
-        ...this.getContext(),
-        ...metadata,
-      },
-    };
-  }
-
-  private async flushLogs(): Promise<void> {
-    if (this.isFlushing || this.logQueue.length === 0) {
-      return;
-    }
-
-    this.isFlushing = true;
-    const logsToSend = [...this.logQueue];
-    this.logQueue = [];
-
-    try {
-      await axios.post(loggerConfig.endpoint, logsToSend, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (error) {
-      this.logQueue.unshift(...logsToSend);
-      if (this.logQueue.length > 100) {
-        this.logQueue = this.logQueue.slice(-100);
-      }
-    } finally {
-      this.isFlushing = false;
-    }
-  }
-
-  private setupFlushTimer(): void {
-    setInterval(() => {
-      if (this.logQueue.length > 0) {
-        this.flushLogs().catch(() => {});
-      }
-    }, loggerConfig.flushIntervalMs);
-  }
-
-  private setupUnloadHandler(): void {
-    window.addEventListener('beforeunload', () => {
-      if (this.logQueue.length > 0) {
-        navigator.sendBeacon(`${loggerConfig.endpoint}`, JSON.stringify(this.logQueue));
-      }
+    otelLogger.emit({
+      severityNumber: severityMap[severity],
+      severityText: severity,
+      body: message,
+      attributes,
     });
   }
 
-  private addToQueue(entry: LogEntry): void {
-    this.logQueue.push(entry);
-
-    if (this.logQueue.length >= loggerConfig.batchSize) {
-      this.flushLogs().catch(() => {});
-    }
-  }
-
   error(message: string, metadata?: Record<string, unknown>): void {
-    log.error(message, metadata);
-    this.addToQueue(this.createLogEntry('error', message, metadata));
+    this.emitLog('error', message, metadata);
   }
 
   warn(message: string, metadata?: Record<string, unknown>): void {
-    log.warn(message, metadata);
-    this.addToQueue(this.createLogEntry('warn', message, metadata));
+    this.emitLog('warn', message, metadata);
   }
 
   info(message: string, metadata?: Record<string, unknown>): void {
-    log.info(message, metadata);
-    this.addToQueue(this.createLogEntry('info', message, metadata));
+    this.emitLog('info', message, metadata);
   }
 
   debug(message: string, metadata?: Record<string, unknown>): void {
-    log.debug(message, metadata);
-    this.addToQueue(this.createLogEntry('debug', message, metadata));
+    this.emitLog('debug', message, metadata);
   }
 
   log(message: string, metadata?: Record<string, unknown>): void {
-    log.info(message, metadata);
-    this.addToQueue(this.createLogEntry('info', message, metadata));
+    this.emitLog('info', message, metadata);
   }
 
-  setLevel(level: log.LogLevelDesc): void {
-    log.setLevel(level);
+  setLevel(_level: string): void {
+    // OTel handles log levels via configuration, not runtime
   }
 }
 

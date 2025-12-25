@@ -76,6 +76,12 @@ const loggingSchema = z.object({
   file: fileLogSchema.optional(),
 });
 
+const otelSchema = z.object({
+  enabled: z.boolean().optional().default(true),
+  serviceName: z.string().optional(),
+  endpoint: z.string().optional(),
+});
+
 export const appConfigSchema = z
   .object({
     service1: service1Schema,
@@ -86,6 +92,7 @@ export const appConfigSchema = z
     backend: backendSchema,
     frontend: frontendSchema,
     logging: loggingSchema.optional(),
+    otel: otelSchema.optional(),
   })
   .strict();
 
