@@ -1,35 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import * as fs from 'fs'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import fs from 'fs';
+import { appConfigSchema } from '../backend/src/config/configSchema';
 
-// Read config.json for frontend host, port, and allowedHosts
 const configPath = path.resolve(__dirname, '../../config.json');
-if (!fs.existsSync(configPath)) {
-  console.error('FATAL: Configuration file not found at', configPath);
-  process.exit(1);
-}
-
 const configContent = fs.readFileSync(configPath, 'utf-8');
-const config = JSON.parse(configContent);
+const config = appConfigSchema.parse(JSON.parse(configContent));
 
-if (!config.frontend) {
-  console.error('FATAL: Configuration missing frontend section in config.json');
-  process.exit(1);
-}
-
-if (!config.frontend.apiBaseUrl) {
-  console.error('FATAL: Configuration missing frontend.apiBaseUrl in config.json');
-  process.exit(1);
-}
-const frontendHost = config.frontend.host || 'localhost';
-const frontendPort = config.frontend.port || 5173;
-const allowedHosts = config.frontend.allowedHosts && Array.isArray(config.frontend.allowedHosts) 
-  ? config.frontend.allowedHosts 
-  : ['localhost'];
-
-
-const apiBaseUrl = config.frontend.apiBaseUrl;
+const { host, port, allowedHosts, apiBaseUrl } = config.frontend;
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -48,17 +27,17 @@ export default defineConfig({
     preserveSymlinks: false,
   },
   server: {
-    host: frontendHost,
-    port: frontendPort,
-    allowedHosts: allowedHosts,
+    host,
+    port,
+    allowedHosts,
     fs: {
       allow: ['..'],
     },
   },
-  preview:{
-    host: frontendHost,
-    port: frontendPort,
-    allowedHosts: allowedHosts
+  preview: {
+    host,
+    port,
+    allowedHosts,
   },
   optimizeDeps: {
     esbuildOptions:{

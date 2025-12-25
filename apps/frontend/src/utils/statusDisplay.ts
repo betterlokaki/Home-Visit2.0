@@ -26,8 +26,8 @@ export function getStatusDisplay(
     };
   }
 
-  // If no seen status, default to Not Seen
-  const currentSeenStatus = seenStatus || 'Not Seen';
+  // If no seen status, it means Not Seen (default for missing windows)
+  const currentSeenStatus = seenStatus ?? 'Not Seen';
 
   // Handle Cover Not Satisfied status (works with any cover status except Empty)
   if (currentSeenStatus === 'Cover Not Satisfied') {

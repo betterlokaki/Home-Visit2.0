@@ -1,7 +1,8 @@
 import winston from 'winston';
+import { appConfig } from './configLoader';
 
 export const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  level: appConfig.backend.environment === 'production' ? 'info' : 'debug',
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),

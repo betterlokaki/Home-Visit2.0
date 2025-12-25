@@ -3,9 +3,10 @@ import type { Site } from '@home-visit/common';
 import wkt from 'wellknown';
 import { getMapColor } from './mapColors';
 
-export function convertWktToGeoJson(wktString: string | null | unknown): Geometry | null {
-  if (!wktString) {
-    return null;
+export function convertWktToGeoJson(wktString: string | null | unknown): Geometry {
+  // Check for null or undefined first
+  if (wktString === null || wktString === undefined) {
+    throw new Error('WKT string is null or undefined');
   }
 
   // Handle case where geometry might already be a GeoJSON object
@@ -15,43 +16,36 @@ export function convertWktToGeoJson(wktString: string | null | unknown): Geometr
       if (wktString.type === 'Polygon' || wktString.type === 'MultiPolygon') {
         return wktString as Geometry;
       }
+      throw new Error(`Invalid GeoJSON type: expected Polygon or MultiPolygon, got ${wktString.type}`);
     }
-    // If it's an object but not GeoJSON, log and return null
-    console.error('Error parsing WKT: input is an object but not a valid GeoJSON Polygon/MultiPolygon', { value: wktString });
-    return null;
+    throw new Error('Input is an object but not a valid GeoJSON Polygon/MultiPolygon');
   }
 
   // Ensure wktString is actually a string
   if (typeof wktString !== 'string') {
-    console.error('Error parsing WKT: input is not a string or object', { type: typeof wktString, value: wktString });
-    return null;
+    throw new Error(`Invalid WKT input type: expected string, got ${typeof wktString}`);
   }
 
   // Trim whitespace and validate it looks like WKT
   const trimmed = wktString.trim();
   if (!trimmed || trimmed.length === 0) {
-    console.error('Error parsing WKT: input is empty string');
-    return null;
+    throw new Error('WKT string is empty');
   }
 
   // Basic validation - WKT should start with POLYGON or MULTIPOLYGON
   const upperTrimmed = trimmed.toUpperCase();
   if (!upperTrimmed.startsWith('POLYGON') && !upperTrimmed.startsWith('MULTIPOLYGON')) {
-    console.error('Error parsing WKT: input does not start with POLYGON or MULTIPOLYGON', { wktString: trimmed });
-    return null;
+    throw new Error(`Invalid WKT format: must start with POLYGON or MULTIPOLYGON, got ${trimmed.substring(0, 20)}...`);
   }
 
-  try {
-    const geoJson = wkt.parse(trimmed);
-    if (geoJson && (geoJson.type === 'Polygon' || geoJson.type === 'MultiPolygon')) {
-      return geoJson as Geometry;
-    }
-    console.error('Error parsing WKT: parsed result is not a Polygon or MultiPolygon', { geoJson });
-    return null;
-  } catch (error) {
-    console.error('Error parsing WKT:', error, { wktString: trimmed, errorMessage: error instanceof Error ? error.message : String(error) });
-    return null;
+  const geoJson = wkt.parse(trimmed);
+  if (!geoJson) {
+    throw new Error('Failed to parse WKT string');
   }
+  if (geoJson.type !== 'Polygon' && geoJson.type !== 'MultiPolygon') {
+    throw new Error(`Parsed WKT is not a Polygon or MultiPolygon, got ${geoJson.type}`);
+  }
+  return geoJson as Geometry;
 }
 
 export function sitesToGeoJson(sites: Site[]): FeatureCollection {
@@ -59,11 +53,6 @@ export function sitesToGeoJson(sites: Site[]): FeatureCollection {
     .filter((site) => site.geometry)
     .map((site) => {
       const geometry = convertWktToGeoJson(site.geometry);
-      if (!geometry) {
-        console.warn('Failed to convert geometry for site', { siteName: site.siteName, geometry: site.geometry });
-        return null;
-      }
-
       const mapColor = getMapColor(
         site.coverStatus,
         site.status?.seenStatus,
@@ -85,8 +74,7 @@ export function sitesToGeoJson(sites: Site[]): FeatureCollection {
           strokeWidth: mapColor.strokeWidth,
         },
       } as Feature;
-    })
-    .filter((feature): feature is Feature => feature !== null);
+    });
 
   return {
     type: 'FeatureCollection',
@@ -96,12 +84,16 @@ export function sitesToGeoJson(sites: Site[]): FeatureCollection {
 
 export function calculatePolygonCentroid(geometry: Polygon | MultiPolygon): [number, number] {
   if (geometry.type === 'Polygon') {
-    const polygon = geometry;
+    const polygon = geometry as Polygon;
     if (!polygon.coordinates || polygon.coordinates.length === 0) {
-      return [0, 0];
+      throw new Error('Polygon has no coordinates');
     }
 
     const ring = polygon.coordinates[0];
+    if (!ring || ring.length === 0) {
+      throw new Error('Polygon ring is empty');
+    }
+
     let sumLon = 0;
     let sumLat = 0;
     let count = 0;
@@ -112,20 +104,30 @@ export function calculatePolygonCentroid(geometry: Polygon | MultiPolygon): [num
       count++;
     }
 
+    if (count === 0) {
+      throw new Error('Polygon ring has no coordinates');
+    }
+
     return [sumLon / count, sumLat / count];
-  } else if (geometry.type === 'MultiPolygon') {
+  }
+  
+  if (geometry.type === 'MultiPolygon') {
     // For MultiPolygon, calculate centroid of the first polygon
-    const multiPolygon = geometry;
+    const multiPolygon = geometry as MultiPolygon;
     if (!multiPolygon.coordinates || multiPolygon.coordinates.length === 0) {
-      return [0, 0];
+      throw new Error('MultiPolygon has no coordinates');
     }
 
     const firstPolygon = multiPolygon.coordinates[0];
     if (!firstPolygon || firstPolygon.length === 0) {
-      return [0, 0];
+      throw new Error('MultiPolygon first polygon is empty');
     }
 
     const ring = firstPolygon[0];
+    if (!ring || ring.length === 0) {
+      throw new Error('MultiPolygon first ring is empty');
+    }
+
     let sumLon = 0;
     let sumLat = 0;
     let count = 0;
@@ -134,11 +136,15 @@ export function calculatePolygonCentroid(geometry: Polygon | MultiPolygon): [num
       sumLon += coord[0];
       sumLat += coord[1];
       count++;
+    }
+
+    if (count === 0) {
+      throw new Error('MultiPolygon ring has no coordinates');
     }
 
     return [sumLon / count, sumLat / count];
   }
 
-  return [0, 0];
+  throw new Error(`Unsupported geometry type: ${(geometry as Geometry).type}`);
 }
 

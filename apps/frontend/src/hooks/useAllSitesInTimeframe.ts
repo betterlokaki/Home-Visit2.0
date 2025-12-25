@@ -23,24 +23,18 @@ export const useAllSitesInTimeframe = ({
     }
 
     setLoading(true);
-    try {
-      const windowStart = new Date(currentTimeframe);
+    const windowStart = new Date(currentTimeframe);
 
-      const sitesData = await sitesService.getSitesByFilters({
-        group: group.groupName,
-        dates: {
-          From: windowStart,
-          To: windowStart,
-        },
-      });
+    const sitesData = await sitesService.getSitesByFilters({
+      group: group.groupName,
+      dates: {
+        From: windowStart,
+        To: windowStart,
+      },
+    });
 
-      setSites(sitesData);
-    } catch (error) {
-      console.error('Failed to fetch all sites:', error);
-      setSites([]);
-    } finally {
-      setLoading(false);
-    }
+    setSites(sitesData);
+    setLoading(false);
   }, [group, currentTimeframe, refreshSeconds]);
 
   useEffect(() => {

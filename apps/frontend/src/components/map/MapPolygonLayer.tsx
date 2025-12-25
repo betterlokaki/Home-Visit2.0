@@ -10,12 +10,7 @@ interface MapPolygonLayerProps {
 
 export const MapPolygonLayer: React.FC<MapPolygonLayerProps> = ({ sites }) => {
   const geoJsonData = useMemo<FeatureCollection>(() => {
-    try {
-      return sitesToGeoJson(sites);
-    } catch (error) {
-      console.error('Error converting sites to GeoJSON:', error);
-      return { type: 'FeatureCollection', features: [] };
-    }
+    return sitesToGeoJson(sites);
   }, [sites]);
 
   if (geoJsonData.features.length === 0) {

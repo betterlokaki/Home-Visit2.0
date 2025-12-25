@@ -23,7 +23,6 @@ export const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(
     const flyToSite = useMapFlyTo(mapRef, sites);
     const handleMapClick = useMapClickHandler(mapRef, onPolygonClick);
     const mapConfig = useMapConfig();
-    
 
     useImperativeHandle(ref, () => ({
       flyToSite,

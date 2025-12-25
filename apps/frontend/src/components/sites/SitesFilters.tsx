@@ -43,17 +43,13 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
   const { fetchSitesHistory, loading: isDownloading } = useSitesHistoryData();
 
   const handleDownload = async () => {
-    try {
-      const { sitesByTimeframe, allSites } = await fetchSitesHistory(
-        group,
-        currentTimeframe,
-        refreshSeconds,
-        30
-      );
-      generateExcelReport(sitesByTimeframe, allSites);
-    } catch (error) {
-      console.error('Failed to generate Excel report:', error);
-    }
+    const { sitesByTimeframe, allSites } = await fetchSitesHistory(
+      group,
+      currentTimeframe,
+      refreshSeconds,
+      30
+    );
+    generateExcelReport(sitesByTimeframe, allSites);
   };
 
   return (

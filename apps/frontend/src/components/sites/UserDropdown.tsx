@@ -37,7 +37,13 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
     selectedUsernames.length === 0
       ? 'משתמש'
       : selectedUsernames.length === 1
-        ? users.find((u) => u.username === selectedUsernames[0])?.userDisplayName || 'משתמש'
+        ? (() => {
+            const user = users.find((u) => u.username === selectedUsernames[0]);
+            if (!user) {
+              throw new Error(`User not found: ${selectedUsernames[0]}`);
+            }
+            return user.userDisplayName || user.username;
+          })()
         : `${selectedUsernames.length} משתמשים`;
 
   return (

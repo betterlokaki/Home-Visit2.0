@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/logger';
+import { appConfig } from '../config/configLoader';
 
 export const errorHandler = (
   err: Error,
@@ -20,7 +21,7 @@ export const errorHandler = (
 
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    message: appConfig.backend.environment === 'development' ? err.message : undefined,
   });
 };
 

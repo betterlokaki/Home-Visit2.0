@@ -509,3 +509,41 @@ tests/
 - Tests may create additional data (e.g., "Not Seen" statuses for last window)
 - Database state may change during test execution (this is expected for integration tests)
 
+## Error Handling - Throw First Catch Last - CRITICAL
+
+### Core Principle
+- **Throw First**: Services, utilities, and business logic should throw exceptions when errors occur
+- **Catch Last**: Only catch exceptions at the very last layer (controllers in backend, error boundaries in frontend)
+- **No Default Values**: Never provide default values for missing required configuration or data - throw exceptions instead
+- **No Silent Failures**: Never silently fail or return default values - always throw exceptions
+
+### Backend Error Handling
+- **Services/Utilities**: Never use try-catch - let errors propagate
+- **Controllers**: Only place where try-catch is allowed - catch errors and return appropriate HTTP status codes
+- **Config Loading**: If required config is missing, throw exception immediately - never provide defaults
+- **Database Operations**: Let database errors propagate - don't catch in services/repositories
+- **HTTP Client**: Let HTTP errors propagate - don't catch in HttpClient
+
+### Frontend Error Handling
+- **Components/Hooks**: Never use try-catch - let errors propagate to error boundaries
+- **Services**: Never use try-catch - throw errors when operations fail
+- **Config Loading**: If required config is missing, throw exception and exit (for build-time) or show error (for runtime)
+- **Utilities**: Throw errors instead of returning null/undefined for invalid inputs
+- **No Default Values**: Never use `||` operator for default values - validate and throw if required
+
+### Exception Rules
+- **Configuration Errors**: Always throw exceptions with clear messages indicating what's missing
+- **Validation Errors**: Throw exceptions with descriptive messages
+- **Network Errors**: Let them propagate - don't catch and return default values
+- **Data Errors**: Throw exceptions when data is invalid or missing
+
+### Error Messages
+- Error messages must clearly indicate what went wrong
+- Include context (e.g., "Configuration missing frontend.apiBaseUrl")
+- Never use generic messages like "Error occurred" without context
+
+### Business Logic Defaults
+- Business logic defaults (e.g., "Not Seen" for missing status windows) are acceptable
+- These are domain rules, not configuration or data defaults
+- Configuration and data defaults are strictly forbidden
+

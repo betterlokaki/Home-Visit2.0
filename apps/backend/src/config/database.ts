@@ -5,26 +5,18 @@ import { User } from '../entities/User';
 import { Site } from '../entities/Site';
 import { Status } from '../entities/Status';
 import { logger } from './logger';
-import { ConfigLoader } from '../services/configLoader/ConfigLoader';
-
-const configLoader = new ConfigLoader();
-const config = configLoader.loadConfig();
+import { appConfig } from './configLoader';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: config.database.url,
+  url: appConfig.database.url,
   entities: [Group, User, Site, Status],
   synchronize: false,
-  logging: process.env.NODE_ENV === 'development',
+  logging: appConfig.backend.environment === 'development',
 });
 
 export const initializeDatabase = async (): Promise<void> => {
-  try {
-    await AppDataSource.initialize();
-    logger.info('Database connection established');
-  } catch (error) {
-    logger.error('Error connecting to database:', error);
-    throw error;
-  }
+  await AppDataSource.initialize();
+  logger.info('Database connection established');
 };
 

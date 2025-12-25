@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Site, SeenStatus } from '@home-visit/common';
 import { SiteCard } from './SiteCard';
 import { sitesService } from '../services/sitesService';
+import { logger } from '../utils/logger';
 
 interface SitesListProps {
   sites: Site[];
@@ -57,12 +58,17 @@ export const SitesList: React.FC<SitesListProps> = ({
         return newMap;
       });
     } catch (error) {
-      console.error('Failed to update status:', error);
       // Revert optimistic update on error
       setOptimisticUpdates((prev) => {
         const newMap = new Map(prev);
         newMap.delete(site.siteId);
         return newMap;
+      });
+      // Log error but don't throw - let the component continue functioning
+      logger.error('Failed to update site status', {
+        siteName: site.siteName,
+        seenStatus,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };

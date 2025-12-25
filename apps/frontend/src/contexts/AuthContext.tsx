@@ -1,22 +1,19 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { User, Group } from '@home-visit/common';
-import Cookies from 'js-cookie';
 import { authService } from '../services/authService';
-
-const USERNAME_COOKIE_NAME = 'home-visit-username';
+import { logger } from '../utils/logger';
 
 interface AuthContextType {
   user: User | null;
   group: Group | null;
   loading: boolean;
-  initializing: boolean;
   error: string | null;
   login: (username: string) => Promise<void>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -34,7 +31,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(false);
-  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const login = useCallback(async (username: string) => {
@@ -47,48 +43,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (userData.group) {
         setGroup(userData.group);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      logger.info('User logged in', { username, userId: userData.userId });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
-      throw err;
+      logger.error('Login failed', { username, error: errorMessage });
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
 
   const logout = useCallback(() => {
+    const username = user?.username;
     setUser(null);
     setGroup(null);
     setError(null);
-  }, []);
-
-  useEffect(() => {
-    const autoLogin = async () => {
-      const savedUsername = Cookies.get(USERNAME_COOKIE_NAME);
-      if (savedUsername) {
-        try {
-          setLoading(true);
-          const userData = await authService.login(savedUsername);
-          setUser(userData);
-          if (userData.group) {
-            setGroup(userData.group);
-          }
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Auto-login failed');
-        } finally {
-          setLoading(false);
-          setInitializing(false);
-        }
-      } else {
-        setInitializing(false);
-      }
-    };
-
-    autoLogin();
-  }, []);
+    if (username) {
+      logger.info('User logged out', { username });
+    }
+  }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, group, loading, initializing, error, login, logout }}>
+    <AuthContext.Provider value={{ user, group, loading, error, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

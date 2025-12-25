@@ -5,21 +5,21 @@ import { LoginHeader } from '../../components/login/LoginHeader';
 import { LoginForm } from '../../components/login/LoginForm';
 
 export const LoginPage: React.FC = () => {
-  const { user, login, loading, initializing } = useAuth();
+  const { user, login, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!initializing && user) {
+    if (user) {
       navigate('/sites', { replace: true });
     }
-  }, [user, initializing, navigate]);
+  }, [user, navigate]);
 
   const handleLogin = async (username: string) => {
     await login(username);
     navigate('/sites');
   };
 
-  if (initializing) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4" dir="rtl">
         <div className="text-text">טוען...</div>

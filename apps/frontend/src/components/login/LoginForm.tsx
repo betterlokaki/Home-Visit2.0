@@ -34,8 +34,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
     try {
       await onSubmit(username);
       Cookies.set(USERNAME_COOKIE_NAME, username, { expires: USERNAME_COOKIE_EXPIRATION_DAYS });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      setError(errorMessage);
     }
   };
 

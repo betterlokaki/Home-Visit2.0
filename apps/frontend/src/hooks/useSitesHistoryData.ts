@@ -22,50 +22,43 @@ export function useSitesHistoryData() {
       setLoading(true);
       setError(null);
 
-      try {
-        const windowStarts: Date[] = [];
-        let currentWindowStart = new Date(currentTimeframe);
-        
-        for (let i = 0; i < numberOfTimeframes; i++) {
-          windowStarts.push(new Date(currentWindowStart));
-          if (i < numberOfTimeframes - 1) {
-            currentWindowStart = navigateTimeframe(currentWindowStart, 'prev', refreshSeconds);
-          }
+      const windowStarts: Date[] = [];
+      let currentWindowStart = new Date(currentTimeframe);
+      
+      for (let i = 0; i < numberOfTimeframes; i++) {
+        windowStarts.push(new Date(currentWindowStart));
+        if (i < numberOfTimeframes - 1) {
+          currentWindowStart = navigateTimeframe(currentWindowStart, 'prev', refreshSeconds);
         }
-
-        windowStarts.reverse();
-
-        const sitesByTimeframe: SitesByTimeframe[] = [];
-        const allSitesMap = new Map<number, Site>();
-
-        for (const windowStart of windowStarts) {
-          const sites = await sitesService.getSitesByFilters({
-            group: group.groupName,
-            dates: {
-              From: windowStart,
-              To: windowStart,
-            },
-          });
-
-          sites.forEach((site) => {
-            if (!allSitesMap.has(site.siteId)) {
-              allSitesMap.set(site.siteId, site);
-            }
-          });
-
-          sitesByTimeframe.push({ timeframe: windowStart, sites });
-        }
-
-        const allSites = Array.from(allSitesMap.values());
-
-        return { sitesByTimeframe, allSites };
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch sites history';
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
       }
+
+      windowStarts.reverse();
+
+      const sitesByTimeframe: SitesByTimeframe[] = [];
+      const allSitesMap = new Map<number, Site>();
+
+      for (const windowStart of windowStarts) {
+        const sites = await sitesService.getSitesByFilters({
+          group: group.groupName,
+          dates: {
+            From: windowStart,
+            To: windowStart,
+          },
+        });
+
+        sites.forEach((site) => {
+          if (!allSitesMap.has(site.siteId)) {
+            allSitesMap.set(site.siteId, site);
+          }
+        });
+
+        sitesByTimeframe.push({ timeframe: windowStart, sites });
+      }
+
+      const allSites = Array.from(allSitesMap.values());
+      setLoading(false);
+
+      return { sitesByTimeframe, allSites };
     },
     []
   );

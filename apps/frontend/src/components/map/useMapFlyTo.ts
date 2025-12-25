@@ -13,57 +13,52 @@ export function useMapFlyTo(
   return useCallback(
     (siteId: number) => {
       const site = sites.find((s) => s.siteId === siteId);
-      if (!site || !site.geometry || !mapRef.current) {
-        console.warn('FlyTo: Site not found or missing geometry or map ref', { siteId, hasSite: !!site, hasGeometry: !!site?.geometry, hasMapRef: !!mapRef.current, geometryType: typeof site?.geometry });
-        return;
+      if (!site) {
+        throw new Error(`Site with id ${siteId} not found`);
+      }
+      if (!site.geometry) {
+        throw new Error(`Site ${site.siteName} (id: ${siteId}) has no geometry`);
+      }
+      if (!mapRef.current) {
+        throw new Error('Map ref is null');
       }
 
-      // Pass geometry directly to converter - it will handle string, object, or null
-      // Don't convert to string if it's already an object, as it might be GeoJSON
       const geometry = convertWktToGeoJson(site.geometry);
-      if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) {
-        console.warn('FlyTo: Failed to convert geometry to polygon/multipolygon', { siteId, geometry: site.geometry, geometryType: typeof site.geometry, parsedType: geometry?.type });
-        return;
+      if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
+        throw new Error(`Site ${site.siteName} (id: ${siteId}) has invalid geometry type: ${geometry.type}`);
       }
 
-      try {
-        const center = calculatePolygonCentroid(geometry);
-        
-        if (!mapRef.current) {
-          console.error('FlyTo: Map ref is null');
-          return;
-        }
-
-        const map = mapRef.current.getMap();
-        
-        if (!map) {
-          console.error('FlyTo: Map instance not available');
-          return;
-        }
-
-        if (typeof map.flyTo !== 'function') {
-          console.error('FlyTo: flyTo method not available on map instance', { map, availableMethods: Object.keys(map) });
-          return;
-        }
-
-        // Ensure coordinates are in correct format [lng, lat]
-        if (!Array.isArray(center) || center.length !== 2) {
-          console.error('FlyTo: Invalid center coordinates', { center });
-          return;
-        }
-
-        const zoom = mapConfig?.flyToZoom || 15;
-        map.flyTo({
-          center: [center[0], center[1]] as [number, number],
-          zoom: zoom,
-          duration: 1500,
-          essential: true,
-        });
-      } catch (error) {
-        console.error('FlyTo: Error during flyTo operation', error);
+      const center = calculatePolygonCentroid(geometry);
+      const map = mapRef.current.getMap();
+      
+      if (!map) {
+        throw new Error('Map instance not available');
       }
+
+      if (typeof map.flyTo !== 'function') {
+        throw new Error('flyTo method not available on map instance');
+      }
+
+      // Ensure coordinates are in correct format [lng, lat]
+      if (!Array.isArray(center) || center.length !== 2) {
+        throw new Error(`Invalid center coordinates: expected [lng, lat], got ${JSON.stringify(center)}`);
+      }
+
+      if (!mapConfig) {
+        throw new Error('Map config is not available');
+      }
+      if (!mapConfig.flyToZoom) {
+        throw new Error('Map config flyToZoom is required');
+      }
+
+      map.flyTo({
+        center: [center[0], center[1]] as [number, number],
+        zoom: mapConfig.flyToZoom,
+        duration: 1500,
+        essential: true,
+      });
     },
-    [mapRef, sites]
+    [mapRef, sites, mapConfig]
   );
 }
 

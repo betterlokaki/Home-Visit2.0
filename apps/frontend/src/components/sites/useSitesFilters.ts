@@ -22,13 +22,9 @@ export function useSitesFilters({ groupName, onFiltersChange }: UseSitesFiltersP
 
   useEffect(() => {
     const loadUsers = async () => {
-      try {
-        const groupUsers = await usersService.getUsersByGroup(groupName);
-        setUsers(groupUsers);
-        setSelectedUsernames(groupUsers.map((u) => u.username));
-      } catch (error) {
-        console.error('Failed to load users:', error);
-      }
+      const groupUsers = await usersService.getUsersByGroup(groupName);
+      setUsers(groupUsers);
+      setSelectedUsernames(groupUsers.map((u) => u.username));
     };
 
     if (groupName) {

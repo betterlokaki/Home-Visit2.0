@@ -3,11 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/login/LoginPage';
 import { SitesPage } from './pages/sites/SitesPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, initializing } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (initializing) {
+  if (loading) {
     return <div>טוען...</div>;
   }
   
@@ -15,9 +16,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const AppRoutes: React.FC = () => {
-  const { user, initializing } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (initializing) {
+  if (loading) {
     return <div>טוען...</div>;
   }
   
@@ -39,11 +40,13 @@ const AppRoutes: React.FC = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

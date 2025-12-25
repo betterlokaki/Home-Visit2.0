@@ -26,7 +26,9 @@
     }
   },
   "cache": {
-    "ttlSeconds": 300
+    "ttlSeconds": 300,
+    "refreshThresholdPercentage": 0.8,
+    "maxConcurrentRefreshes": 3
   },
   "map": {
     "mapStyle": "https://demotiles.maplibre.org/style.json",
@@ -67,6 +69,22 @@
     "port": 5173,
     "allowedHosts": ["localhost", "127.0.0.1"],
     "apiBaseUrl": "http://localhost:3001/api"
+  },
+  "logging": {
+    "level": "info",
+    "file": {
+      "path": "logs/app.log",
+      "maxSize": "20m",
+      "maxFiles": 14
+    },
+    "elasticsearch": {
+      "url": "http://localhost:9200",
+      "index": "home-visit-logs",
+      "auth": {
+        "username": "elastic",
+        "password": "changeme"
+      }
+    }
   }
 }
 

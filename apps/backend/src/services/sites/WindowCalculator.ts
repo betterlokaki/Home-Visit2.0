@@ -1,7 +1,7 @@
 export class WindowCalculator {
   private static calculateAnchorDate(timestamp: Date): Date {
     const anchor = new Date(timestamp);
-    anchor.setHours(0, 0, 0, 0);
+    anchor.setUTCHours(0, 0, 0, 0);
     return anchor;
   }
 

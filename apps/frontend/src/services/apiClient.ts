@@ -1,67 +1,43 @@
 import axios, { AxiosError } from 'axios';
 import type { AxiosInstance } from 'axios';
+import { logger } from '../utils/logger';
 
 declare const __API_BASE_URL__: string;
 
-function getApiBaseUrl(): string {
-  if (!__API_BASE_URL__) {
-    throw new Error('Configuration missing API base URL');
-  }
-  return __API_BASE_URL__;
+if (!__API_BASE_URL__) {
+  throw new Error('Configuration missing API base URL');
 }
 
-class ApiClient {
-  private client: AxiosInstance;
-  private apiBaseUrl: string | null = null;
-  private configPromise: Promise<void>;
+const client: AxiosInstance = axios.create({
+  baseURL: __API_BASE_URL__,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  constructor() {
-    this.client = axios.create({
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    this.setupInterceptors();
-    this.configPromise = this.loadConfig();
+client.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response) {
+      logger.error('API Error', { 
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config?.url,
+      });
+    } else if (error.request) {
+      logger.error('Network Error', { 
+        request: error.request,
+        url: error.config?.url,
+      });
+    } else {
+      logger.error('Error', { 
+        message: error.message,
+        url: error.config?.url,
+      });
+    }
+    return Promise.reject(error);
   }
+);
 
-  private async loadConfig(): Promise<void> {
-    this.apiBaseUrl = getApiBaseUrl();
-    this.client.defaults.baseURL = this.apiBaseUrl;
-  }
-
-  private setupInterceptors(): void {
-    this.client.interceptors.request.use(
-      async (config) => {
-        await this.configPromise;
-        if (this.apiBaseUrl) {
-          config.baseURL = this.apiBaseUrl;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => {
-        if (error.response) {
-          console.error('API Error:', error.response.data);
-        } else if (error.request) {
-          console.error('Network Error:', error.request);
-        } else {
-          console.error('Error:', error.message);
-        }
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  getClient(): AxiosInstance {
-    return this.client;
-  }
-}
-
-export const apiClient = new ApiClient().getClient();
+export const apiClient = client;
 
