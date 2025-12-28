@@ -19,9 +19,22 @@ export const errorHandler = (
     return next(err);
   }
 
-  res.status(500).json({
+  let isDevelopment = false;
+  try {
+    isDevelopment = appConfig?.backend?.environment === 'development';
+  } catch (configError) {
+    // Config not available, default to production
+    isDevelopment = false;
+  }
+
+  const responseBody: { error: string; message?: string } = {
     error: 'Internal server error',
-    message: appConfig.backend.environment === 'development' ? err.message : undefined,
-  });
+  };
+
+  if (isDevelopment) {
+    responseBody.message = err.message;
+  }
+
+  res.status(500).json(responseBody);
 };
 

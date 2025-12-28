@@ -1,4 +1,4 @@
-import { AppConfig } from '../../config/configSchema';
+import { AppConfig } from '@home-visit/common';
 import { TimeRange } from './timeWindowUtils';
 
 export type SiteWithGeometry = { siteName: string; geometry: string };

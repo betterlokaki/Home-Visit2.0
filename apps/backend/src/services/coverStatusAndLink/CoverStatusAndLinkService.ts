@@ -3,7 +3,7 @@ import { ICache } from '../cache/interfaces/ICache';
 import { ISiteRepository } from '../../repositories/sites/interfaces/ISiteRepository';
 import { ICoverStatusAndLinkService, CoverStatusAndLinkResult } from './interfaces/ICoverStatusAndLinkService';
 import { ICacheRefreshQueue } from '../cacheRefreshQueue/interfaces/ICacheRefreshQueue';
-import { AppConfig } from '../../config/configSchema';
+import { AppConfig } from '@home-visit/common';
 import { buildRequestPayload, SiteWithGeometry } from './payloadBuilder';
 import { generateCacheKey, normalizeTimeRange, TimeRange } from './timeWindowUtils';
 import { filterResultsForRequestedSites } from './resultFilter';

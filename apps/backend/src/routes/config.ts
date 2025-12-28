@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { appConfig } from '../config/configLoader';
-import type { MapStyle } from '../config/configSchema';
+import type { MapStyle } from '@home-visit/common';
 
 const router: Router = Router();
 

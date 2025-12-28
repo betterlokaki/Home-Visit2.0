@@ -2,6 +2,15 @@ import { CoverStatus, CoverStatusAndLinkResponse } from '@home-visit/common';
 import { CoverStatusAndLinkResult } from './interfaces/ICoverStatusAndLinkService';
 import { SiteWithGeometry } from './payloadBuilder';
 
+/**
+ * Maps external service response to internal result format.
+ * 
+ * @param sites - Sites to map results for
+ * @param response - External service response
+ * @param responseKey - Key in response object containing the array of items
+ * @returns Array of mapped results, one per site
+ * @throws Error if response format is invalid (not an array)
+ */
 export const mapResponseToResults = (
   sites: SiteWithGeometry[],
   response: CoverStatusAndLinkResponse,
@@ -10,7 +19,10 @@ export const mapResponseToResults = (
   const responseItems = response[responseKey];
 
   if (!Array.isArray(responseItems)) {
-    throw new Error(`Invalid response format: expected array at key '${responseKey}', got ${typeof responseItems}`);
+    throw new Error(
+      `Invalid response format: expected array at key '${responseKey}', got ${typeof responseItems}. ` +
+      `Response structure: ${JSON.stringify(Object.keys(response))}`
+    );
   }
 
   const responseMap = new Map<string, { status: CoverStatus; projectLink: string }>();
@@ -36,9 +48,21 @@ export const mapResponseToResults = (
   });
 };
 
+/**
+ * Creates "no data available" results for multiple sites.
+ * 
+ * @param sites - Sites to create results for
+ * @returns Array of results with "no data available" status
+ */
 export const createNoDataResults = (sites: Array<{ siteName: string }>): CoverStatusAndLinkResult[] =>
   sites.map((site) => createNoDataResult(site.siteName));
 
+/**
+ * Creates a "no data available" result for a single site.
+ * 
+ * @param siteName - Name of the site
+ * @returns Result object with "no data available" status and link
+ */
 export const createNoDataResult = (siteName: string): CoverStatusAndLinkResult => ({
   siteName,
   coverStatus: 'no data available',

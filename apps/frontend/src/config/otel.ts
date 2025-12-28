@@ -4,16 +4,19 @@ import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-u
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { SEMRESATTRS_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 
-declare const __API_BASE_URL__: string;
+declare const __LOGS_ENDPOINT__: string;
 
-const apiBaseUrl = __API_BASE_URL__ || '';
-const logsEndpoint = `${apiBaseUrl}/api/logs`;
+if (!__LOGS_ENDPOINT__) {
+  throw new Error('Configuration missing logs endpoint');
+}
+
+const logsEndpoint = __LOGS_ENDPOINT__;
 
 const resource = resourceFromAttributes({
-  [SEMRESATTRS_SERVICE_NAME]: 'home-visit-frontend',
+  [ATTR_SERVICE_NAME]: 'home-visit-frontend',
 });
 
 const logExporter = new OTLPLogExporter({

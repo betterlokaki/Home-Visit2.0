@@ -80,6 +80,7 @@ const otelSchema = z.object({
   enabled: z.boolean().optional().default(true),
   serviceName: z.string().optional(),
   endpoint: z.string().optional(),
+  logsEndpoint: nonEmptyString,
 });
 
 export const appConfigSchema = z

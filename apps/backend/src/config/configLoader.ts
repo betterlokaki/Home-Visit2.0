@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { appConfigSchema, AppConfig } from './configSchema';
+import { appConfigSchema, AppConfig } from '@home-visit/common';
 
 function getConfigPath(): string {
   const cwd = process.cwd();
