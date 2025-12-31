@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Site, SeenStatus } from '@home-visit/common';
 import { SiteCard } from './SiteCard';
 import { sitesService } from '../services/sitesService';
-import { logger } from '../utils/logger';
+import { useLogger } from '../hooks/useLogger';
 
 interface SitesListProps {
   sites: Site[];
@@ -19,6 +19,7 @@ export const SitesList: React.FC<SitesListProps> = ({
   onSitesUpdate,
   onSiteCardClick,
 }) => {
+  const logger = useLogger();
   const [openSiteId, setOpenSiteId] = useState<number | null>(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState<
     Map<number, SeenStatus>

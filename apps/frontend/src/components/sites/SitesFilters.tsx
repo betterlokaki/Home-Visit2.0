@@ -5,6 +5,7 @@ import { ExcelDownloadButton } from './ExcelDownloadButton';
 import { useSitesFilters } from './useSitesFilters';
 import { useSitesHistoryData } from '../../hooks/useSitesHistoryData';
 import { generateExcelReport } from '../../services/excelService';
+import { useLogger } from '../../hooks/useLogger';
 
 interface SitesFiltersProps {
   groupName: string;
@@ -26,6 +27,7 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
   refreshSeconds,
   group,
 }) => {
+  const logger = useLogger();
   const {
     users,
     selectedUsernames,
@@ -63,7 +65,10 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
 
         <button
           type="button"
-          onClick={() => setEmptyCover(!emptyCover)}
+          onClick={() => {
+            logger.info('Button clicked', { buttonName: 'filter_empty_cover', filterState: !emptyCover });
+            setEmptyCover(!emptyCover);
+          }}
           className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
             emptyCover
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -75,7 +80,10 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
 
         <button
           type="button"
-          onClick={() => setAwaitingVisit(!awaitingVisit)}
+          onClick={() => {
+            logger.info('Button clicked', { buttonName: 'filter_awaiting_visit', filterState: !awaitingVisit });
+            setAwaitingVisit(!awaitingVisit);
+          }}
           className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
             awaitingVisit
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -87,7 +95,10 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
 
         <button
           type="button"
-          onClick={() => setCoverNotSatisfied(!coverNotSatisfied)}
+          onClick={() => {
+            logger.info('Button clicked', { buttonName: 'filter_cover_not_satisfied', filterState: !coverNotSatisfied });
+            setCoverNotSatisfied(!coverNotSatisfied);
+          }}
           className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
             coverNotSatisfied
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -99,7 +110,10 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
 
         <button
           type="button"
-          onClick={() => setCompleted(!completed)}
+          onClick={() => {
+            logger.info('Button clicked', { buttonName: 'filter_completed', filterState: !completed });
+            setCompleted(!completed);
+          }}
           className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
             completed
               ? 'bg-blue-600 hover:bg-blue-500 text-white'

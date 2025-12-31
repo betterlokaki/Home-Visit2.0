@@ -1,5 +1,6 @@
 import React from 'react';
 import { Download } from 'lucide-react';
+import { useLogger } from '../../hooks/useLogger';
 
 interface ExcelDownloadButtonProps {
   onClick: () => void;
@@ -10,11 +11,18 @@ export const ExcelDownloadButton: React.FC<ExcelDownloadButtonProps> = ({
   onClick,
   disabled,
 }) => {
+  const logger = useLogger();
+
+  const handleClick = () => {
+    logger.info('Button clicked', { buttonName: 'download_excel' });
+    onClick();
+  };
+
   return (
     <div className="relative group">
       <button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
         disabled={disabled}
         className={`p-1.5 rounded text-sm transition-colors flex items-center justify-center ${
           disabled

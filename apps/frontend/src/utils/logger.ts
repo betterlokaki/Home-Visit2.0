@@ -11,51 +11,52 @@ const severityMap: Record<'error' | 'warn' | 'info' | 'debug', SeverityNumber> =
   debug: SeverityNumber.DEBUG,
 };
 
-class Logger {
-  private emitLog(severity: 'error' | 'warn' | 'info' | 'debug', message: string, metadata?: Record<string, unknown>): void {
-    const attributes: Record<string, string> = {
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      ...Object.fromEntries(
-        Object.entries(metadata || {}).map(([key, value]) => [
-          key,
-          typeof value === 'string' ? value : JSON.stringify(value),
-        ])
-      ),
-    };
-
-    otelLogger.emit({
-      severityNumber: severityMap[severity],
-      severityText: severity,
-      body: message,
-      attributes,
-    });
-  }
-
-  error(message: string, metadata?: Record<string, unknown>): void {
-    this.emitLog('error', message, metadata);
-  }
-
-  warn(message: string, metadata?: Record<string, unknown>): void {
-    this.emitLog('warn', message, metadata);
-  }
-
-  info(message: string, metadata?: Record<string, unknown>): void {
-    this.emitLog('info', message, metadata);
-  }
-
-  debug(message: string, metadata?: Record<string, unknown>): void {
-    this.emitLog('debug', message, metadata);
-  }
-
-  log(message: string, metadata?: Record<string, unknown>): void {
-    this.emitLog('info', message, metadata);
-  }
-
-  setLevel(_level: string): void {
-    // OTel handles log levels via configuration, not runtime
-  }
+interface LogContext {
+  username?: string;
+  userId?: number;
+  groupName?: string;
+  groupId?: number;
 }
 
-export const logger = new Logger();
+const emitLog = (
+  severity: 'error' | 'warn' | 'info' | 'debug',
+  message: string,
+  metadata?: Record<string, unknown>,
+  context?: LogContext
+): void => {
+  const attributes: Record<string, string> = {
+    source: 'frontend',
+    ...Object.fromEntries(
+      Object.entries(metadata || {}).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value : JSON.stringify(value),
+      ])
+    ),
+  };
+
+  if (context?.username) attributes.username = context.username;
+  if (context?.userId !== undefined) attributes.userId = String(context.userId);
+  if (context?.groupName) attributes.groupName = context.groupName;
+  if (context?.groupId !== undefined) attributes.groupId = String(context.groupId);
+
+  otelLogger.emit({
+    severityNumber: severityMap[severity],
+    severityText: severity,
+    body: message,
+    attributes,
+  });
+};
+
+export const logger = {
+  error: (message: string, metadata?: Record<string, unknown>, context?: LogContext): void =>
+    emitLog('error', message, metadata, context),
+  warn: (message: string, metadata?: Record<string, unknown>, context?: LogContext): void =>
+    emitLog('warn', message, metadata, context),
+  info: (message: string, metadata?: Record<string, unknown>, context?: LogContext): void =>
+    emitLog('info', message, metadata, context),
+  debug: (message: string, metadata?: Record<string, unknown>, context?: LogContext): void =>
+    emitLog('debug', message, metadata, context),
+  log: (message: string, metadata?: Record<string, unknown>, context?: LogContext): void =>
+    emitLog('info', message, metadata, context),
+};
 

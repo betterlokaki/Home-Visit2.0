@@ -3,6 +3,7 @@ import type { Site, SeenStatus } from '@home-visit/common';
 import { getStatusDisplay } from '../utils/statusDisplay';
 import { StatusButtons } from './sites/StatusButtons';
 import { GitHubProjectButton } from './sites/GitHubProjectButton';
+import { useLogger } from '../hooks/useLogger';
 
 interface SiteCardProps {
   site: Site;
@@ -19,6 +20,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
   onStatusUpdate,
   onMapFlyTo,
 }) => {
+  const logger = useLogger();
   const statusDisplay = getStatusDisplay(
     site.coverStatus,
     site.status?.seenStatus,
@@ -45,6 +47,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
   const handleCardClick = (e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
+    logger.info('Site clicked', { siteId: site.siteId });
     onToggle();
     if (onMapFlyTo) {
       // Use setTimeout to ensure the toggle happens first, then flyTo
@@ -77,6 +80,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
                 coverStatus={site.coverStatus}
                 currentSeenStatus={site.status?.seenStatus}
                 onStatusClick={onStatusUpdate}
+                siteId={site.siteId}
               />
               <span className="text-text text-base">|</span>
             </>
@@ -84,6 +88,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           <GitHubProjectButton
             siteLink={site.siteLink}
             coverStatus={site.coverStatus}
+            siteId={site.siteId}
           />
         </div>
       </div>

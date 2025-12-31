@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../config/logger';
+import { logWithContext } from '../config/logger';
 import { appConfig } from '../config/configLoader';
 
 export const errorHandler = (
@@ -8,7 +8,8 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  logger.error('Error occurred:', {
+  logWithContext(req, 'error', {
+    message: 'Error occurred',
     error: err.message,
     stack: err.stack,
     path: req.path,

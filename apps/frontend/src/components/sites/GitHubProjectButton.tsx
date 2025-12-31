@@ -1,16 +1,20 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
 import type { CoverStatus } from '@home-visit/common';
+import { useLogger } from '../../hooks/useLogger';
 
 interface GitHubProjectButtonProps {
   siteLink: string | 'no data available' | undefined;
   coverStatus: CoverStatus | 'no data available' | undefined;
+  siteId: number;
 }
 
 export const GitHubProjectButton: React.FC<GitHubProjectButtonProps> = ({
   siteLink,
   coverStatus,
+  siteId,
 }) => {
+  const logger = useLogger();
   const isDisabled =
     coverStatus === 'no data available' ||
     coverStatus === 'Empty' ||
@@ -21,6 +25,7 @@ export const GitHubProjectButton: React.FC<GitHubProjectButtonProps> = ({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (!isDisabled && siteLink && siteLink !== 'no data available') {
+      logger.info('Button clicked', { buttonName: 'lightning', siteId });
       window.open(siteLink, '_blank', 'noopener,noreferrer');
     }
   };

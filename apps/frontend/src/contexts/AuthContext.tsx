@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { User, Group } from '@home-visit/common';
 import { authService } from '../services/authService';
 import { logger } from '../utils/logger';
+import { authStore } from '../utils/authStore';
 
 interface AuthContextType {
   user: User | null;
@@ -39,15 +40,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const userData = await authService.login(username);
       setUser(userData);
+      authStore.setUser(userData);
 
       if (userData.group) {
         setGroup(userData.group);
+        authStore.setGroup(userData.group);
       }
-      logger.info('User logged in', { username, userId: userData.userId });
+      logger.info('User logged in', { username, userId: userData.userId }, {
+        username: userData.username,
+        userId: userData.userId,
+        groupName: userData.group?.groupName,
+        groupId: userData.group?.groupId,
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
-      logger.error('Login failed', { username, error: errorMessage });
+      logger.error('Login failed', { username, error: errorMessage }, { username });
       throw error;
     } finally {
       setLoading(false);
@@ -58,9 +66,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const username = user?.username;
     setUser(null);
     setGroup(null);
+    authStore.setUser(null);
+    authStore.setGroup(null);
     setError(null);
     if (username) {
-      logger.info('User logged out', { username });
+      logger.info('User logged out', { username }, {
+        username: user?.username,
+        userId: user?.userId,
+        groupName: group?.groupName,
+        groupId: group?.groupId,
+      });
     }
   }, [user]);
 

@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
-import type { AxiosInstance } from 'axios';
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { logger } from '../utils/logger';
+import { authStore } from '../utils/authStore';
 
 declare const __API_BASE_URL__: string;
 
@@ -14,6 +15,28 @@ const client: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+client.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const user = authStore.getUser();
+    const group = authStore.getGroup();
+
+    if (user) {
+      config.headers['X-User-Username'] = user.username;
+      config.headers['X-User-Id'] = String(user.userId);
+    }
+
+    if (group) {
+      config.headers['X-Group-Name'] = group.groupName;
+      config.headers['X-Group-Id'] = String(group.groupId);
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 client.interceptors.response.use(
   (response) => response,

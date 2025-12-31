@@ -5,6 +5,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { logger } from './config/logger';
 import { errorHandler } from './middleware/errorHandler';
+import { userContextMiddleware } from './middleware/userContext';
 import groupsRoutes from './routes/groups';
 import usersRoutes from './routes/users';
 import sitesRoutes from './routes/sites';
@@ -17,6 +18,7 @@ export const config = appConfig;
 
 app.use(cors());
 app.use(express.json());
+app.use(userContextMiddleware);
 app.use((_req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   next();

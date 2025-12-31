@@ -1,17 +1,21 @@
 import React from 'react';
 import type { CoverStatus, SeenStatus } from '@home-visit/common';
+import { useLogger } from '../../hooks/useLogger';
 
 interface StatusButtonsProps {
   coverStatus: CoverStatus | 'no data available' | undefined;
   currentSeenStatus: SeenStatus | undefined;
   onStatusClick: (seenStatus: SeenStatus) => void;
+  siteId: number;
 }
 
 export const StatusButtons: React.FC<StatusButtonsProps> = ({
   coverStatus,
   currentSeenStatus,
   onStatusClick,
+  siteId,
 }) => {
+  const logger = useLogger();
   const isFullCover = coverStatus === 'Full';
   const isPartialOrFullCover =
     coverStatus === 'Full' || coverStatus === 'Partial';
@@ -31,6 +35,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
       <button
         onClick={() => {
           if (!isDoneDisabled) {
+            logger.info('Button clicked', { buttonName: 'status_seen', siteId });
             onStatusClick('Seen' as SeenStatus);
           }
         }}
@@ -46,6 +51,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
       <button
         onClick={() => {
           if (!isPartialDoneDisabled) {
+            logger.info('Button clicked', { buttonName: 'status_partial_seen', siteId });
             onStatusClick('Partial Seen' as SeenStatus);
           }
         }}
@@ -61,6 +67,7 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
       <button
         onClick={() => {
           if (!isCoverNotSatisfiedDisabled) {
+            logger.info('Button clicked', { buttonName: 'status_cover_not_satisfied', siteId });
             onStatusClick('Cover Not Satisfied' as SeenStatus);
           }
         }}
@@ -74,7 +81,10 @@ export const StatusButtons: React.FC<StatusButtonsProps> = ({
         איסוף לא מספק
       </button>
       <button
-        onClick={() => onStatusClick('Not Seen' as SeenStatus)}
+        onClick={() => {
+          logger.info('Button clicked', { buttonName: 'status_not_seen', siteId });
+          onStatusClick('Not Seen' as SeenStatus);
+        }}
         className={`pl-1 pr-1 py-1 rounded-lg font-medium text-sm transition-colors cursor-pointer ${
           isNotDoneActive
             ? 'bg-red-600 hover:bg-red-700 text-white'
