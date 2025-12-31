@@ -49,7 +49,7 @@ export const SitesFilters: React.FC<SitesFiltersProps> = ({
       group,
       currentTimeframe,
       refreshSeconds,
-      30
+      7
     );
     generateExcelReport(sitesByTimeframe, allSites);
   };
