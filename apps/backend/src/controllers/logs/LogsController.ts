@@ -27,13 +27,6 @@ interface OTLPRequest {
   }>;
 }
 
-interface LegacyLogEntry {
-  level: 'error' | 'warn' | 'info' | 'debug';
-  message: string;
-  timestamp?: string;
-  metadata?: Record<string, unknown>;
-}
-
 const severityNumberToLevel = (severityNumber?: number): 'error' | 'warn' | 'info' | 'debug' => {
   if (!severityNumber) return 'info';
   if (severityNumber >= 17) return 'error';
@@ -60,10 +53,8 @@ export class LogsController {
 
     if (this.isOTLPFormat(body)) {
       await this.handleOTLPFormat(body as OTLPRequest, res);
-    } else if (Array.isArray(body)) {
-      await this.handleLegacyFormat(body as LegacyLogEntry[], res);
     } else {
-      res.status(400).json({ error: 'Request body must be OTLP format or array of log entries' });
+      res.status(400).json({ error: 'Request body must be OTLP format' });
     }
   }
 
@@ -83,6 +74,7 @@ export class LogsController {
 
           const logData: Record<string, unknown> = {
             message,
+            source: 'frontend',
             ...attributes,
           };
 
@@ -112,42 +104,6 @@ export class LogsController {
     }
 
     res.status(200).json({ success: true, received: processedCount });
-  }
-
-  private async handleLegacyFormat(logEntries: LegacyLogEntry[], res: Response): Promise<void> {
-    for (const entry of logEntries) {
-      if (!entry.level || !entry.message) {
-        continue;
-      }
-
-      const logData: Record<string, unknown> = {
-        message: entry.message,
-        ...entry.metadata,
-      };
-
-      if (entry.timestamp) {
-        logData.timestamp = entry.timestamp;
-      }
-
-      switch (entry.level) {
-        case 'error':
-          logger.error(logData);
-          break;
-        case 'warn':
-          logger.warn(logData);
-          break;
-        case 'info':
-          logger.info(logData);
-          break;
-        case 'debug':
-          logger.debug(logData);
-          break;
-        default:
-          logger.info(logData);
-      }
-    }
-
-    res.status(200).json({ success: true, received: logEntries.length });
   }
 }
 

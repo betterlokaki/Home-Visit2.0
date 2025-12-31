@@ -46,7 +46,9 @@ const baseLogger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
     winston.format((info) => {
-      info.source = 'backend';
+      if (!info.source) {
+        info.source = 'backend';
+      }
       return info;
     })(),
     winston.format.json()

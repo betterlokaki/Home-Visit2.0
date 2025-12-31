@@ -16,7 +16,27 @@ import { appConfig } from './config/configLoader';
 const app: express.Application = express();
 export const config = appConfig;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: (_origin, callback) => {
+      // Allow all origins - no restrictions
+      callback(null, true);
+    },
+    credentials: true,
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-User-Username',
+      'X-User-Id',
+      'X-Group-Name',
+      'X-Group-Id',
+      'otlp-version',
+      'traceparent',
+      'tracestate',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  })
+);
 app.use(express.json());
 app.use(userContextMiddleware);
 app.use((_req, res, next) => {
